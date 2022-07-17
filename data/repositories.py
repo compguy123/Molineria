@@ -33,14 +33,14 @@ class BaseDataRepository(ABC, Generic[TModel]):
 
     @abstractmethod
     def create(self, record: TModel) -> TModel | None:
-        if not record or record.id != 0:
+        if record is None or record.id != 0:
             raise MolineriaDataException(
                 "record cannot be None and record.id must be == 0."
             )
 
     @abstractmethod
     def update(self, record: TModel) -> TModel | None:
-        if not record or record.id <= 0:
+        if record is None or record.id <= 0:
             raise MolineriaDataException(
                 "record cannot be None and record.id must be > 0."
             )
@@ -51,7 +51,7 @@ class BaseDataRepository(ABC, Generic[TModel]):
             raise MolineriaDataException("id must be > 0.")
 
 
-class FakeDataRepository(BaseDataRepository):
+class FakeDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     def get(self, id: int) -> TModel | None:
         return super().get(id)
 
@@ -68,22 +68,32 @@ class FakeDataRepository(BaseDataRepository):
         return super().delete(id)
 
 
-class UserDataRepository(BaseDataRepository):
+class UserDataRepository(BaseDataRepository[User]):
+    _select_cols = "id, name, date_of_birth, comment"
+
+    def _user_to_paramters(self, user: User) -> dict:
+        return {
+            "id": user.id,
+            "name": user.name,
+            "date_of_birth": user.date_of_birth,
+            "comment": user.comment,
+        }
+
     def __init__(self, connection: Connection) -> None:
         super().__init__(connection)
 
     def get(self, id: int) -> User | None:
         super().get(id)
         sql = f"""
-            SELECT * FROM user
+            SELECT {self._select_cols} FROM user
             WHERE id == ?
-            LIMIT 1
+            LIMIT 1;
             """
         cursor: Cursor
         with closing(self._conn.execute(sql, (id,))) as cursor:
-            records: list[User] = cursor.fetchall()
+            records: list[tuple[int, str, str, str]] = cursor.fetchall()
             if len(records) >= 0:
-                return records[0]
+                return User.create(records[0])
 
     # either translate predicate to sql
     # or use something like specification pattern?
@@ -91,30 +101,30 @@ class UserDataRepository(BaseDataRepository):
     def get_all(self, predicate: Optional[User]) -> list[User]:
         super().get_all(predicate)
         sql = f"""
-            SELECT * FROM user
-            ORDER BY id
+            SELECT {self._select_cols} FROM user
+            ORDER BY id;
             """
         cursor: Cursor
-        with closing(self._conn.execute(sql, (id,))) as cursor:
+        with closing(self._conn.execute(sql)) as cursor:
             records: list[User] = cursor.fetchall()
             if len(records) >= 0:
-                return records[0]
+                return User.create(records[0])
 
     def create(self, record: User) -> User | None:
         super().create(record)
         sql = f"""
             INSERT INTO user
-                    (id, name, date_of_birth, comment)
+                    (name, date_of_birth, comment)
                 VALUES
-                    (@id, @name, @date_of_birth, @comment)
+                    (@name, @date_of_birth, @comment);
             """
         cursor: Cursor
         try:
             with self._conn:
-                with closing(self._conn.execute(sql, record)) as cursor:
-                    records: list[User] = cursor.fetchall()
-                    if len(records) >= 0:
-                        return records[0]
+                parameters = self._user_to_paramters(record)
+                with closing(self._conn.execute(sql, parameters)) as cursor:
+                    self._conn.commit()
+                    return self.get(cursor.lastrowid)
         except IntegrityError as ex:
             self._print_value("ERROR:", ex)
 
@@ -125,15 +135,16 @@ class UserDataRepository(BaseDataRepository):
                 name = @name
                 ,date_of_birth = @date_of_birth
                 ,comment = @comment
-            WHERE id = @id
+            WHERE id = @id;
             """
         cursor: Cursor
         try:
             with self._conn:
-                with closing(self._conn.execute(sql, record)) as cursor:
+                parameters = self._user_to_paramters(record)
+                with closing(self._conn.executemany(sql, parameters)) as cursor:
                     records: list[User] = cursor.fetchall()
                     if len(records) >= 0:
-                        return records[0]
+                        return User.create(records[0])
         except IntegrityError as ex:
             self._print_value("ERROR:", ex)
 
@@ -141,7 +152,7 @@ class UserDataRepository(BaseDataRepository):
         super().delete(id)
         sql = f"""
             DELETE FROM user
-            WHERE id = ?
+            WHERE id = ?;
             """
         cursor: Cursor
         try:

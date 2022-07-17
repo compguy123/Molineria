@@ -1,9 +1,10 @@
+from __future__ import annotations
 from abc import ABC
 from datetime import date
 
 
 class BaseModel(ABC):
-    _id: int
+    _id: int = 0
 
     @property
     def id(self) -> int:
@@ -17,6 +18,12 @@ class User(BaseModel):
         self._name = name
         self._date_of_birth = date_of_birth
         self._comment = comment
+
+    @staticmethod
+    def create(tuple: tuple[int, str, str, str]) -> User:
+        user = User(tuple[1], tuple[2], tuple[3])
+        user._id = tuple[0]
+        return user
 
     @property
     def name(self) -> str:
