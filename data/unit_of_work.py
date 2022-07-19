@@ -2,10 +2,14 @@ import os
 import sqlite3
 from contextlib import closing
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Any, Optional
+from typing import Any
 from data.exceptions import InvalidConnectionException, InvalidDatabaseException
 from data.models import Medication, Pharmacy, User, UserMedication, UserMedicationRefill
-from data.repositories import BaseDataRepository, FakeDataRepository, UserDataRepository
+from data.repositories import (
+    BaseDataRepository,
+    FakeDataRepository,
+    MolineriaDataRepository,
+)
 
 
 class BaseUnitOfWork(ABC):
@@ -186,40 +190,60 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
                 )
 
     @property
-    def user_repo(self) -> UserDataRepository:
+    def user_repo(self) -> MolineriaDataRepository[User]:
         if not self._user_repo:
             self._ensure_connection_created()
-            self._user_repo = UserDataRepository(self._conn)
+            self._user_repo = MolineriaDataRepository[User](
+                connection=self._conn,
+                table_name="user",
+                select_cols="id,name,date_of_birth,comment",
+            )
         return self._user_repo
 
     @property
-    def medication_repo(self) -> BaseDataRepository[Medication]:
+    def medication_repo(self) -> MolineriaDataRepository[Medication]:
         if not self._medication_repo:
             self._ensure_connection_created()
-            self._medication_repo = BaseDataRepository[Medication](self._conn)
+            self._medication_repo = MolineriaDataRepository[Medication](
+                connection=self._conn,
+                table_name="medication",
+                select_cols="id,name,image_url,wiki_identifier",
+            )
         return self._medication_repo
 
     @property
-    def pharmacy_repo(self) -> BaseDataRepository[Pharmacy]:
+    def pharmacy_repo(self) -> MolineriaDataRepository[Pharmacy]:
         if not self._pharmacy_repo:
             self._ensure_connection_created()
-            self._pharmacy_repo = BaseDataRepository[Pharmacy](self._conn)
+            self._pharmacy_repo = MolineriaDataRepository[Pharmacy](
+                connection=self._conn,
+                table_name="pharmacy",
+                select_cols="id,name,phone_number,location",
+            )
         return self._pharmacy_repo
 
     @property
-    def user_medication_repo(self) -> BaseDataRepository[UserMedication]:
+    def user_medication_repo(self) -> MolineriaDataRepository[UserMedication]:
         if not self._user_medication_repo:
             self._ensure_connection_created()
-            self._user_medication_repo = BaseDataRepository[UserMedication](self._conn)
+            self._user_medication_repo = MolineriaDataRepository[UserMedication](
+                connection=self._conn,
+                table_name="user_medication",
+                select_cols="id,user_id,rx_number,quantity,remaining_refills,weight_in_milligrams,filled_on,discard_on",
+            )
         return self._user_medication_repo
 
     @property
     def user_medication_refill_repo(
         self,
-    ) -> BaseDataRepository[UserMedicationRefill]:
+    ) -> MolineriaDataRepository[UserMedicationRefill]:
         if not self._user_medication_refill_repo:
             self._ensure_connection_created()
-            self._user_medication_refill_repo = BaseDataRepository[
+            self._user_medication_refill_repo = MolineriaDataRepository[
                 UserMedicationRefill
-            ](self._conn)
+            ](
+                connection=self._conn,
+                table_name="user_medication_refill",
+                select_cols="id,user_medication_id,medication_id,pharmacy_id,prescribed_by,refilled_on,amount,comment",
+            )
         return self._user_medication_refill_repo

@@ -1,18 +1,30 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, Optional, TypeVar
-from sqlite3 import Connection, Cursor, IntegrityError
+from typing import Any, Generic, TypeVar
+from sqlite3 import Connection, Cursor, Error
 from contextlib import closing
+import data
 from data.exceptions import MolineriaDataException
-from data.models import BaseModel, User
+from data.models import BaseModel
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
 
 class BaseDataRepository(ABC, Generic[TModel]):
-    _conn: Connection = None
+    _conn: Connection | None = None
+    _table_name: str | None = None
+    _select_cols: str | None = None
+    _type: type | None = None
 
-    def __init__(self, connection: Connection) -> None:
+    def __init__(
+        self,
+        connection: Connection | None,
+        table_name: str | None,
+        select_cols: str | None,
+    ) -> None:
         self._conn = connection
+        self._table_name = table_name
+        self._select_cols = select_cols
+        self._type = self._get_model_type_by_table_name()
 
     def close(self):
         if self._conn:
@@ -21,15 +33,47 @@ class BaseDataRepository(ABC, Generic[TModel]):
     def _print_value(self, category: str, value: Any) -> None:
         print(f"{__class__.__name__}.{__name__}(...) - {category} - ", value)
 
+    def _from_snake_case_to_pascal_case(self, value: str) -> str:
+        return value.replace("_", " ").title().replace(" ", "")
+
+    def _get_model_type_by_table_name(self) -> type:
+        try:
+            model_name = self._from_snake_case_to_pascal_case(self._table_name)
+            return getattr(data.models, model_name)
+        except AttributeError as err:
+            self._print_value("DB MAPPING TO MODEL ERROR:", err)
+            return None
+
     @abstractmethod
     def get(self, id: int) -> TModel | None:
         if id <= 0:
             raise MolineriaDataException("id must be > 0.")
+        sql = f"""
+            SELECT {self._select_cols} FROM {self._table_name}
+            WHERE id == ?
+            LIMIT 1;
+            """
+        cursor: Cursor
+        with closing(self._conn.execute(sql, (id,))) as cursor:
+            records: list[tuple] = cursor.fetchall()
+            if len(records) > 0:
+                found_record = self._get_model_type_by_table_name()(*records[0])
+                return found_record
 
     @abstractmethod
-    def get_all(self, predicate: Optional[TModel]) -> list[TModel]:
-        if predicate and not callable(predicate):
-            raise MolineriaDataException("WHAT? func with no brim???")
+    def get_all(self) -> list[TModel]:
+        sql = f"""
+            SELECT {self._select_cols} FROM {self._table_name}
+            ORDER BY id;
+            """
+        cursor: Cursor
+        with closing(self._conn.execute(sql)) as cursor:
+            records: list[tuple] = cursor.fetchall()
+            if len(records) > 0:
+                found_records = [
+                    self._get_model_type_by_table_name()(*record) for record in records
+                ]
+                return found_records
 
     @abstractmethod
     def create(self, record: TModel) -> TModel | None:
@@ -37,6 +81,24 @@ class BaseDataRepository(ABC, Generic[TModel]):
             raise MolineriaDataException(
                 "record cannot be None and record.id must be == 0."
             )
+        dict = vars(record)
+        keys = list(filter(lambda k: k != "id", dict.keys()))
+        column_names = ", ".join([k for k in keys])
+        parameter_names = ", ".join([f"@{k}" for k in keys])
+        sql = f"""
+            INSERT INTO {self._table_name}
+                    ({column_names})
+                VALUES
+                    ({parameter_names});
+            """
+        cursor: Cursor
+        try:
+            with self._conn as conn:
+                with closing(conn.execute(sql, dict)) as cursor:
+                    return self.get(cursor.lastrowid)
+        except Error as err:
+            self._print_value("CREATE ERROR:", err)
+            raise MolineriaDataException(inner_exception=err)
 
     @abstractmethod
     def update(self, record: TModel) -> TModel | None:
@@ -44,19 +106,81 @@ class BaseDataRepository(ABC, Generic[TModel]):
             raise MolineriaDataException(
                 "record cannot be None and record.id must be > 0."
             )
+        dict = vars(record)
+        keys = list(filter(lambda k: k != "id", dict.keys()))
+        names_parameters = "\n\t,".join([f"{k} = @{k}" for k in keys])
+        # don't need to generate where clause because we assume that all records inherit BaseModel
+        sql = f"""
+            UPDATE {self._table_name} SET
+            {names_parameters}
+            WHERE id = @id;
+            """
+        cursor: Cursor
+        try:
+            with self._conn as conn:
+                with closing(conn.execute(sql, dict)) as cursor:
+                    return self.get(record.id)
+        except Error as err:
+            self._print_value("UPDATE ERROR:", err)
+            raise MolineriaDataException(inner_exception=err)
 
     @abstractmethod
     def delete(self, id: int) -> bool:
         if id <= 0:
             raise MolineriaDataException("id must be > 0.")
+        sql = f"""
+            DELETE FROM {self._table_name}
+            WHERE id = ?;
+            """
+        cursor: Cursor
+        try:
+            with self._conn as conn:
+                with closing(conn.execute(sql, (id,))) as cursor:
+                    return cursor.rowcount == 1
+        except Error as err:
+            self._print_value("DELETE ERROR:", err)
+            raise MolineriaDataException(inner_exception=err)
 
 
 class FakeDataRepository(BaseDataRepository[TModel], Generic[TModel]):
+    def __init__(
+        self,
+        connection: Connection | None,
+        table_name: str | None,
+        select_cols: str | None,
+    ) -> None:
+        super().__init__(connection, table_name, select_cols)
+
+    def get(self, id: int) -> TModel | None:
+        return None
+
+    def get_all(self) -> list[TModel]:
+        return []
+
+    def create(self, record: TModel) -> TModel | None:
+        return record
+
+    def update(self, record: TModel) -> TModel | None:
+        return record
+
+    def delete(self, id: int) -> bool:
+        return True
+
+
+class MolineriaDataRepository(BaseDataRepository[TModel], Generic[TModel]):
+    def __init__(
+        self,
+        connection: Connection,
+        table_name: str,
+        select_cols: str,
+    ) -> None:
+        super().__init__(connection, table_name, select_cols)
+
     def get(self, id: int) -> TModel | None:
         return super().get(id)
 
-    def get_all(self, predicate: Optional[TModel]) -> list[TModel]:
-        return super().get_all(predicate)
+    def get_all(self) -> list[TModel]:
+        return super().get_all()
 
     def create(self, record: TModel) -> TModel | None:
         return super().create(record)
@@ -66,98 +190,3 @@ class FakeDataRepository(BaseDataRepository[TModel], Generic[TModel]):
 
     def delete(self, id: int) -> bool:
         return super().delete(id)
-
-
-class UserDataRepository(BaseDataRepository[User]):
-    _select_cols = "id, name, date_of_birth, comment"
-
-    def _user_to_paramters(self, user: User) -> dict:
-        return {
-            "id": user.id,
-            "name": user.name,
-            "date_of_birth": user.date_of_birth,
-            "comment": user.comment,
-        }
-
-    def __init__(self, connection: Connection) -> None:
-        super().__init__(connection)
-
-    def get(self, id: int) -> User | None:
-        super().get(id)
-        sql = f"""
-            SELECT {self._select_cols} FROM user
-            WHERE id == ?
-            LIMIT 1;
-            """
-        cursor: Cursor
-        with closing(self._conn.execute(sql, (id,))) as cursor:
-            records: list[tuple[int, str, str, str]] = cursor.fetchall()
-            if len(records) >= 0:
-                return User.create(records[0])
-
-    # either translate predicate to sql
-    # or use something like specification pattern?
-    # or create methods only for user repo?
-    def get_all(self, predicate: Optional[User]) -> list[User]:
-        super().get_all(predicate)
-        sql = f"""
-            SELECT {self._select_cols} FROM user
-            ORDER BY id;
-            """
-        cursor: Cursor
-        with closing(self._conn.execute(sql)) as cursor:
-            records: list[User] = cursor.fetchall()
-            if len(records) >= 0:
-                return User.create(records[0])
-
-    def create(self, record: User) -> User | None:
-        super().create(record)
-        sql = f"""
-            INSERT INTO user
-                    (name, date_of_birth, comment)
-                VALUES
-                    (@name, @date_of_birth, @comment);
-            """
-        cursor: Cursor
-        try:
-            with self._conn:
-                parameters = self._user_to_paramters(record)
-                with closing(self._conn.execute(sql, parameters)) as cursor:
-                    self._conn.commit()
-                    return self.get(cursor.lastrowid)
-        except IntegrityError as ex:
-            self._print_value("ERROR:", ex)
-
-    def update(self, record: User) -> User | None:
-        super().update(record)
-        sql = f"""
-            UPDATE user SET
-                name = @name
-                ,date_of_birth = @date_of_birth
-                ,comment = @comment
-            WHERE id = @id;
-            """
-        cursor: Cursor
-        try:
-            with self._conn:
-                parameters = self._user_to_paramters(record)
-                with closing(self._conn.executemany(sql, parameters)) as cursor:
-                    records: list[User] = cursor.fetchall()
-                    if len(records) >= 0:
-                        return User.create(records[0])
-        except IntegrityError as ex:
-            self._print_value("ERROR:", ex)
-
-    def delete(self, id: int) -> bool:
-        super().delete(id)
-        sql = f"""
-            DELETE FROM user
-            WHERE id = ?;
-            """
-        cursor: Cursor
-        try:
-            with self._conn:
-                with closing(self._conn.execute(sql, (id,))) as cursor:
-                    return cursor.rowcount == 1
-        except IntegrityError as ex:
-            self._print_value("ERROR:", ex)
