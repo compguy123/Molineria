@@ -33,13 +33,10 @@ class BaseUnitOfWork(ABC):
         if not database_name or not database_name.strip():
             raise InvalidConnectionException("database_name cannot be null or empty.")
 
-        if not database_name.endswith(".db") or not os.path.exists(database_name):
-            raise InvalidConnectionException(
-                "database_name must be a valid path to a '.db' file."
-            )
+        if not database_name.endswith(".db"):
+            raise InvalidConnectionException("database_name must be end with '.db'.")
 
         self._database_name = database_name
-        # self._schema_sql_script = schema_sql_script
 
     def _print_value(self, category: str, value: Any) -> None:
         print(f"{__class__.__name__}.{__name__}(...) - {category} - ", value)
@@ -49,6 +46,7 @@ class BaseUnitOfWork(ABC):
             self._conn = sqlite3.connect(self._database_name)
 
     def _is_missing_any_tables(self, required_tables: list[str]) -> bool:
+        self._ensure_connection_created()
         with closing(
             self._conn.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
         ) as cursor:
