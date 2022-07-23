@@ -4,6 +4,7 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from datetime import datetime
 
 
 class Homepage(Screen):
@@ -11,25 +12,36 @@ class Homepage(Screen):
 
 
 class InsertUser(Screen):
-    firstName = ObjectProperty(None)
-    lastName = ObjectProperty(None)
+    userName = ObjectProperty(None)
+    comments = ObjectProperty(None)
+    dob = ObjectProperty(None)
 
     def createUser(self):
-        if self.firstName.text != "" and self.lastName.text != "":
-            # get add user in database
-            
+        # check user variables are valid
+        if self.userName.text != "" and self.validateDate():
+
             self.reset()
             windowManager.current = "ShowUser"
         else:
             invalidUser()
 
+    # reset user variable
     def reset(self):
-        self.firstName.text = ""
-        self.lastName.text = ""
+        self.userName.text = ""
+        self.comments.text = ""
+        self.dob.text = ""
 
     def homepage(self):
         # return to homepage
         windowManager.current = "Homepage"
+
+    # check date
+    def validateDate(self):
+        try:
+            datetime.strptime(self.dob.text, '%Y-%m-%d')
+            return True
+        except ValueError as ex:
+            return False
 
 
 class ShowUser(Screen):
@@ -54,8 +66,8 @@ for screen in screens:
 
 # create pipup
 def invalidUser():
-    pop = Popup(title='Invalid User',
-                content=Label(text='Invalid first or last name.'),
+    pop = Popup(title='Error',
+                content=Label(text='Invalid name or date.'),
                 size_hint=(.4, .4))
     pop.open()
 

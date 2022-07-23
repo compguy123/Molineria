@@ -44,12 +44,13 @@ WindowManager:
 <InsertUser>:
     name: "InsertUser"
 
-    firstName: firstName
-    lastName: lastName
+    userName: name
+    comments: comments
+    dob: DOB
 
     Button:
         text: "Cancel"
-        pos_hint:{"x":.45, "top":.2}
+        pos_hint:{"x":.55, "top":.2}
         on_press:
             root.homepage()
             root.reset()
@@ -57,7 +58,7 @@ WindowManager:
 
     Button:
         text: "Create User"
-        pos_hint:{"x":.45, "top":.35}
+        pos_hint:{"x":.35, "top":.2}
         on_press:
             root.manager.transition.direction = "left"
             root.createUser()
@@ -65,41 +66,57 @@ WindowManager:
 
     Label:
         text:"Create A User"
-        pos_hint:{"x":.45, "top":.9}
+        pos_hint:{"x":.45, "top":1}
         size_hint: (0.15,0.1)
         font_size:'50sp'
         font_name:'comic'
         color: 13/255,135/255,13/255,1
 
     Label:
-        text:"First Name: "
-        pos_hint:{"x":.15, "top":.7}
+        text:"Name: "
+        pos_hint:{"x":.15, "top":.8}
         size_hint: (0.1,0.1)
         font_size:'30sp'
         font_name:'comic'
         color: 13/255,135/255,13/255,1
 
     Label:
-        text:"Last Name: "
-        pos_hint:{"x":.15, "top":.5}
+        text:"Comments: "
+        pos_hint:{"x":.15, "top":.6}
         size_hint: (0.1,0.1)
         font_size:'30sp'
         font_name:'comic'
         color: 13/255,135/255,13/255,1
 
     TextInput:
-        id: firstName
-        pos_hint: {"x":0.33, "top":.7}
+        id:name
+        pos_hint: {"x":0.33, "top":.8}
+        size_hint: 0.4, 0.1
+        multiline: False
+        font_size: (root.width**2 + root.height**2) / 14**4
+
+    Label:
+        text:"DOB \n(YYYY-MM-DD): "
+        pos_hint:{"x":.15, "top":.4}
+        size_hint: (0.1,0.1)
+        font_size:'25sp'
+        font_name:'comic'
+        color: 13/255,135/255,13/255,1
+
+    TextInput:
+        id: comments
+        pos_hint: {"x":0.33, "top":.6}
         size_hint: 0.4, 0.1
         multiline: False
         font_size: (root.width**2 + root.height**2) / 14**4
 
     TextInput:
-        id: lastName
-        pos_hint: {"x":0.33, "top":.5}
+        id:DOB
+        pos_hint: {"x":0.33, "top":.4}
         size_hint: 0.4, 0.1
         multiline: False
         font_size: (root.width**2 + root.height**2) / 14**4
+
 
 <ShowUser>:
     name: "ShowUser"
