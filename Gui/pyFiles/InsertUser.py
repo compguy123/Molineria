@@ -33,8 +33,9 @@ class InsertUser(Screen):
                 inserted_user = unit_of_work.user_repo.create(user)
                 print(f"INSERTED USER: {inserted_user}")
                 self.reset()
+                return True
         else:
-            invalidUser()
+            return False
 
     # reset user variable
     def reset(self):
@@ -56,10 +57,11 @@ class InsertUser(Screen):
         except ValueError as ex:
             return False
 
+    # create pipup
+    def invalidUser(self):
+        self.pop = Popup(
+            title="Error", content=Label(text="Invalid name or date."), size_hint=(0.4, 0.4)
+        )
 
-# create pipup
-def invalidUser():
-    pop = Popup(
-        title="Error", content=Label(text="Invalid name or date."), size_hint=(0.4, 0.4)
-    )
-    pop.open()
+        self.pop.open()
+

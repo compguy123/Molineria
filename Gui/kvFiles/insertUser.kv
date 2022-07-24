@@ -18,8 +18,7 @@
         text: "Cancel"
         pos_hint:{"x":.55, "top":.2}
         on_press:
-            root.homepage()
-            root.reset()
+            app.root.current= "Homepage"
             root.manager.transition.direction = "right"
 
     Button:
@@ -27,7 +26,8 @@
         pos_hint:{"x":.35, "top":.2}
         on_press:
             root.manager.transition.direction = "left"
-            root.createUser()
+            app.root.current="ShowUser" if root.createUser() else root.invalidUser()
+
 
 
     Label:
