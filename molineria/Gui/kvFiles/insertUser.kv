@@ -1,8 +1,3 @@
-WindowManager:
-    Homepage:
-    InsertUser:
-    ShowUser:
-
 <Button>:
     font_size:'15sp'
     color:.3,.6,.7,1
@@ -11,35 +6,6 @@ WindowManager:
     background_color:(255/255, 240/255, 0, 1)
     color: (13/255,135/255,13/255,1)
 
-<Homepage>:
-    name: "Homepage"
-
-    FloatLayout:
-
-        Button:
-            pos_hint:{"x":.7, "top":.4}
-            text: "New User"
-            on_press:
-                app.root.current= "InsertUser"
-                root.manager.transition.direction = "left"
-
-
-        Button:
-            text: "Existing User"
-            pos_hint:{"x":.7, "top":.6}
-
-        Image:
-            source:"Gui/molineria.png"
-            size_hint: (0.5,1)
-            pos_hint:{"x":0, "top":1}
-
-        Label:
-            text:"MOLINERIA"
-            pos_hint:{"x":.7, "top":.8}
-            size_hint: (0.15,0.1)
-            font_size:'50sp'
-            font_name:'comic'
-            color: 13/255,135/255,13/255,1
 
 <InsertUser>:
     name: "InsertUser"
@@ -116,15 +82,3 @@ WindowManager:
         size_hint: 0.4, 0.1
         multiline: False
         font_size: (root.width**2 + root.height**2) / 14**4
-
-
-<ShowUser>:
-    name: "ShowUser"
-
-    Label:
-        text:"userPage"
-        pos_hint:{"x":.7, "top":.8}
-        size_hint: (0.15,0.1)
-        font_size:'50sp'
-        font_name:'comic'
-        color: 13/255,135/255,13/255,1
