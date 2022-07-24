@@ -13,9 +13,9 @@ from data.repositories import (
 
 
 class BaseUnitOfWork(ABC):
-    _database_name: str = None
-    _conn: sqlite3.Connection = None
-    _schema_sql_script: str = None
+    _database_name: str
+    _conn: sqlite3.Connection
+    _schema_sql_script: str
     _required_tables: list[str] = [
         "medication",
         "pharmacy",
@@ -23,11 +23,11 @@ class BaseUnitOfWork(ABC):
         "user_medication",
         "user_medication_refill",
     ]
-    _user_repo: BaseDataRepository[User] = None
-    _medication_repo: BaseDataRepository[Medication] = None
-    _pharmacy_repo: BaseDataRepository[Pharmacy] = None
-    _user_medication_repo: BaseDataRepository[UserMedication] = None
-    _user_medication_refill_repo: BaseDataRepository[UserMedicationRefill] = None
+    _user_repo: BaseDataRepository[User] | None = None
+    _medication_repo: BaseDataRepository[Medication] | None = None
+    _pharmacy_repo: BaseDataRepository[Pharmacy] | None = None
+    _user_medication_repo: BaseDataRepository[UserMedication] | None = None
+    _user_medication_refill_repo: BaseDataRepository[UserMedicationRefill] | None = None
 
     def __init__(self, database_name: str) -> None:
         if not database_name or not database_name.strip():
@@ -42,7 +42,7 @@ class BaseUnitOfWork(ABC):
         print(f"{__class__.__name__}.{__name__}(...) - {category} - ", value)
 
     def _ensure_connection_created(self) -> None:
-        if not self._conn:
+        if (not hasattr(self, "_conn")) or (not self._conn):
             self._conn = sqlite3.connect(self._database_name)
 
     def _is_missing_any_tables(self, required_tables: list[str]) -> bool:
@@ -50,10 +50,11 @@ class BaseUnitOfWork(ABC):
         with closing(
             self._conn.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
         ) as cursor:
-            current_table_names = cursor.fetchall()
+            current_table_names: list[tuple[str]] = cursor.fetchall()
             for table in required_tables:
                 if current_table_names.count((table,)) <= 0:
                     return True
+            return False
 
     def __enter__(self) -> None:
         self.ensure_database_created()
@@ -73,25 +74,23 @@ class BaseUnitOfWork(ABC):
             self._user_medication_refill_repo.close()
 
     @abstractproperty
-    def user_repo(self) -> BaseDataRepository[User]:
+    def user_repo(self):
         pass
 
     @abstractproperty
-    def medication_repo(self) -> BaseDataRepository[Medication]:
+    def medication_repo(self):
         pass
 
     @abstractproperty
-    def pharmacy_repo(self) -> BaseDataRepository[Pharmacy]:
+    def pharmacy_repo(self):
         pass
 
     @abstractproperty
-    def user_medication_repo(self) -> BaseDataRepository[UserMedication]:
+    def user_medication_repo(self):
         pass
 
     @abstractproperty
-    def user_medication_refill_repo(
-        self,
-    ) -> BaseDataRepository[UserMedicationRefill]:
+    def user_medication_refill_repo(self):
         pass
 
     @abstractmethod
@@ -111,37 +110,55 @@ class FakeUnitOfWork(BaseUnitOfWork):
         return super().ensure_database_created()
 
     @property
-    def user_repo(self) -> FakeDataRepository[User]:
+    def user_repo(self):
         if not self._user_repo:
-            self._user_repo = FakeDataRepository[User](self._conn)
+            self._user_repo = FakeDataRepository[User](
+                connection=self._conn,
+                table_name="user",
+                select_cols="id,name,date_of_birth,comment",
+            )
         return self._user_repo
 
     @property
-    def medication_repo(self) -> FakeDataRepository[Medication]:
+    def medication_repo(self):
         if not self._medication_repo:
-            self._medication_repo = FakeDataRepository[Medication](self._conn)
+            self._medication_repo = FakeDataRepository[Medication](
+                connection=self._conn,
+                table_name="medication",
+                select_cols="id,name,image_url,wiki_identifier",
+            )
         return self._medication_repo
 
     @property
-    def pharmacy_repo(self) -> FakeDataRepository[Pharmacy]:
+    def pharmacy_repo(self):
         if not self._pharmacy_repo:
-            self._pharmacy_repo = FakeDataRepository[Pharmacy](self._conn)
+            self._pharmacy_repo = FakeDataRepository[Pharmacy](
+                connection=self._conn,
+                table_name="pharmacy",
+                select_cols="id,name,phone_number,location",
+            )
         return self._pharmacy_repo
 
     @property
-    def user_medication_repo(self) -> FakeDataRepository[UserMedication]:
+    def user_medication_repo(self):
         if not self._user_medication_repo:
-            self._user_medication_repo = FakeDataRepository[UserMedication](self._conn)
+            self._user_medication_repo = FakeDataRepository[UserMedication](
+                connection=self._conn,
+                table_name="user_medication",
+                select_cols="id,user_id,rx_number,quantity,remaining_refills,weight_in_milligrams,filled_on,discard_on",
+            )
         return self._user_medication_repo
 
     @property
-    def user_medication_refill_repo(
-        self,
-    ) -> FakeDataRepository[UserMedicationRefill]:
+    def user_medication_refill_repo(self):
         if not self._user_medication_refill_repo:
             self._user_medication_refill_repo = FakeDataRepository[
                 UserMedicationRefill
-            ](self._conn)
+            ](
+                connection=self._conn,
+                table_name="user_medication_refill",
+                select_cols="id,user_medication_id,medication_id,pharmacy_id,prescribed_by,refilled_on,amount,comment",
+            )
         return self._user_medication_refill_repo
 
 
@@ -191,7 +208,7 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
                 )
 
     @property
-    def user_repo(self) -> MolineriaDataRepository[User]:
+    def user_repo(self):
         if not self._user_repo:
             self._ensure_connection_created()
             self._user_repo = MolineriaDataRepository[User](
@@ -202,7 +219,7 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
         return self._user_repo
 
     @property
-    def medication_repo(self) -> MolineriaDataRepository[Medication]:
+    def medication_repo(self):
         if not self._medication_repo:
             self._ensure_connection_created()
             self._medication_repo = MolineriaDataRepository[Medication](
@@ -213,7 +230,7 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
         return self._medication_repo
 
     @property
-    def pharmacy_repo(self) -> MolineriaDataRepository[Pharmacy]:
+    def pharmacy_repo(self):
         if not self._pharmacy_repo:
             self._ensure_connection_created()
             self._pharmacy_repo = MolineriaDataRepository[Pharmacy](
@@ -224,7 +241,7 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
         return self._pharmacy_repo
 
     @property
-    def user_medication_repo(self) -> MolineriaDataRepository[UserMedication]:
+    def user_medication_repo(self):
         if not self._user_medication_repo:
             self._ensure_connection_created()
             self._user_medication_repo = MolineriaDataRepository[UserMedication](
@@ -237,7 +254,7 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
     @property
     def user_medication_refill_repo(
         self,
-    ) -> MolineriaDataRepository[UserMedicationRefill]:
+    ):
         if not self._user_medication_refill_repo:
             self._ensure_connection_created()
             self._user_medication_refill_repo = MolineriaDataRepository[
