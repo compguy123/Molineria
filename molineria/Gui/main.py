@@ -4,7 +4,10 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import ObjectProperty
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
-from datetime import datetime
+from datetime import date, datetime
+
+from data.models import User
+from data.unit_of_work import MolineriaUnitOfWork
 
 
 class Homepage(Screen):
@@ -17,13 +20,23 @@ class InsertUser(Screen):
     dob = ObjectProperty(None)
 
     def createUser(self):
-        # check user variables are valid
-        if self.userName.text != "" and self.validateDate():
+        unit_of_work = MolineriaUnitOfWork("molineria/data/molineria.db")
+        with unit_of_work:
+            # check user variables are valid
+            if self.userName.text != "" and self.validateDate():
+                parsed_date = datetime.strptime(self.dob.text, "%Y-%m-%d")
+                user = User(
+                    name=self.userName.text,
+                    date_of_birth=parsed_date.date(),
+                    comment=self.comments.text,
+                )
+                inserted_user = unit_of_work.user_repo.create(user)
+                print(f"INSERTED USER: {inserted_user}")
 
-            self.reset()
-            windowManager.current = "ShowUser"
-        else:
-            invalidUser()
+                self.reset()
+                windowManager.current = "ShowUser"
+            else:
+                invalidUser()
 
     # reset user variable
     def reset(self):
@@ -38,7 +51,7 @@ class InsertUser(Screen):
     # check date
     def validateDate(self):
         try:
-            datetime.strptime(self.dob.text, '%Y-%m-%d')
+            datetime.strptime(self.dob.text, "%Y-%m-%d")
             return True
         except ValueError as ex:
             return False
@@ -53,22 +66,26 @@ class WindowManager(ScreenManager):
 
 
 # load kv file
-kv = Builder.load_file("my.kv")
+kv = Builder.load_file("Gui/my.kv")
 
 # screen manager
 windowManager = WindowManager()
 
 # change screens in code
-screens = {Homepage(name="Homepage"), InsertUser(name="InsertUser"), ShowUser(name="ShowUser")}
+screens = {
+    Homepage(name="Homepage"),
+    InsertUser(name="InsertUser"),
+    ShowUser(name="ShowUser"),
+}
 for screen in screens:
     windowManager.add_widget(screen)
 
 
 # create pipup
 def invalidUser():
-    pop = Popup(title='Error',
-                content=Label(text='Invalid name or date.'),
-                size_hint=(.4, .4))
+    pop = Popup(
+        title="Error", content=Label(text="Invalid name or date."), size_hint=(0.4, 0.4)
+    )
     pop.open()
 
 
