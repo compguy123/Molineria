@@ -8,6 +8,8 @@ from datetime import date, datetime
 from data.models import User
 from data.unit_of_work import MolineriaUnitOfWork
 
+from util.string_util import is_null_or_whitespace
+
 
 class InsertUser(Screen):
     userName = ObjectProperty(None)
@@ -20,7 +22,7 @@ class InsertUser(Screen):
             unit_of_work = MolineriaUnitOfWork("molineria/data/molineria.db")
             with unit_of_work:
                 parsed_date: date | None = None
-                if not self.dob or not InsertUser.is_null_or_white_space(self.dob.text):
+                if not self.dob or not is_null_or_whitespace(self.dob.text):
                     parsed_date = datetime.strptime(self.dob.text, "%Y-%m-%d").date()
 
                 user = User(
@@ -44,13 +46,9 @@ class InsertUser(Screen):
     def homepage(self):
         pass
 
-    @staticmethod
-    def is_null_or_white_space(value: str) -> bool:
-        return not value or not value.strip()
-
     # check date
     def validateDate(self):
-        if not self.dob or InsertUser.is_null_or_white_space(self.dob.text):
+        if not self.dob or is_null_or_whitespace(self.dob.text):
             return True
         try:
             datetime.strptime(self.dob.text, "%Y-%m-%d")

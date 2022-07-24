@@ -10,6 +10,7 @@ from data.repositories import (
     FakeDataRepository,
     MolineriaDataRepository,
 )
+from util.string_util import is_null_or_whitespace
 
 
 class BaseUnitOfWork(ABC):
@@ -30,8 +31,10 @@ class BaseUnitOfWork(ABC):
     _user_medication_refill_repo: BaseDataRepository[UserMedicationRefill] | None = None
 
     def __init__(self, database_name: str) -> None:
-        if not database_name or not database_name.strip():
-            raise InvalidConnectionException("database_name cannot be null or empty.")
+        if is_null_or_whitespace(database_name):
+            raise InvalidConnectionException(
+                "database_name cannot be null or whitespace."
+            )
 
         if not database_name.endswith(".db"):
             raise InvalidConnectionException("database_name must be end with '.db'.")
@@ -251,9 +254,7 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
         return self._user_medication_repo
 
     @property
-    def user_medication_refill_repo(
-        self,
-    ):
+    def user_medication_refill_repo(self):
         if not self._user_medication_refill_repo:
             self._ensure_connection_created()
             self._user_medication_refill_repo = MolineriaDataRepository[

@@ -5,6 +5,7 @@ from contextlib import closing
 import data.models as ModelTypes
 from data.exceptions import MolineriaDataException
 from data.models import BaseModel
+from util.string_util import from_snake_case_to_pascal_case
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
@@ -33,12 +34,9 @@ class BaseDataRepository(ABC, Generic[TModel]):
     def _print_value(self, category: str, value: Any) -> None:
         print(f"{__class__.__name__}.{__name__}(...) - {category} - ", value)
 
-    def _from_snake_case_to_pascal_case(self, value: str) -> str:
-        return value.replace("_", " ").title().replace(" ", "")
-
     def _get_model_type_by_table_name(self) -> type:
         try:
-            model_name = self._from_snake_case_to_pascal_case(self._table_name)
+            model_name = from_snake_case_to_pascal_case(self._table_name)
             return getattr(ModelTypes, model_name)
         except AttributeError as err:
             self._print_value("DB MAPPING TO MODEL ERROR:", err)
