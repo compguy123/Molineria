@@ -170,8 +170,7 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
         # else:
         # figure out how to write testable code (maybe pass class to interact with file system?)
         schema_path = os.path.join(
-            "molineria",
-            "data",
+            os.path.dirname(database_name),
             "scripts",
             "schema.sql",
         )
