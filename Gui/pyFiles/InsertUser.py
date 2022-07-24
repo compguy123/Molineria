@@ -19,7 +19,7 @@ class InsertUser(Screen):
     def createUser(self):
         # check user variables are valid
         if self.userName.text != "" and self.validateDate():
-            unit_of_work = MolineriaUnitOfWork("molineria/data/molineria.db")
+            unit_of_work = MolineriaUnitOfWork("data/molineria.db")
             with unit_of_work:
                 parsed_date: date | None = None
                 if not self.dob or not is_null_or_whitespace(self.dob.text):
