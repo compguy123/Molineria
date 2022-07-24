@@ -6,8 +6,8 @@ from kivy.uix.label import Label
 
 from datetime import date, datetime
 
-from molineria.data.models import User
-from molineria.data.unit_of_work import MolineriaUnitOfWork
+from data.models import User
+from data.unit_of_work import MolineriaUnitOfWork
 
 
 class InsertUser(Screen):
