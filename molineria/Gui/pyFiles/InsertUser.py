@@ -1,13 +1,14 @@
 from kivy.properties import ObjectProperty
-from datetime import datetime
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 
 from datetime import date, datetime
 
-from molineria.data.models import User
-from molineria.data.unit_of_work import MolineriaUnitOfWork
+from data.models import User
+from data.unit_of_work import MolineriaUnitOfWork
+
+from util.string_util import is_null_or_whitespace
 
 
 class InsertUser(Screen):
@@ -20,10 +21,13 @@ class InsertUser(Screen):
         if self.userName.text != "" and self.validateDate():
             unit_of_work = MolineriaUnitOfWork("molineria/data/molineria.db")
             with unit_of_work:
-                parsed_date = datetime.strptime(self.dob.text, "%Y-%m-%d")
+                parsed_date: date | None = None
+                if not self.dob or not is_null_or_whitespace(self.dob.text):
+                    parsed_date = datetime.strptime(self.dob.text, "%Y-%m-%d").date()
+
                 user = User(
                     name=self.userName.text,
-                    date_of_birth=parsed_date.date(),
+                    date_of_birth=parsed_date,
                     comment=self.comments.text,
                 )
                 inserted_user = unit_of_work.user_repo.create(user)
@@ -32,20 +36,20 @@ class InsertUser(Screen):
         else:
             invalidUser()
 
-
     # reset user variable
     def reset(self):
         self.userName.text = ""
         self.comments.text = ""
         self.dob.text = ""
 
+    # return to homepage
     def homepage(self):
         pass
 
-    # return to homepage
-
     # check date
     def validateDate(self):
+        if not self.dob or is_null_or_whitespace(self.dob.text):
+            return True
         try:
             datetime.strptime(self.dob.text, "%Y-%m-%d")
             return True

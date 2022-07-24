@@ -14,6 +14,12 @@ class User(BaseModel):
     date_of_birth: date | None = None
     comment: str | None = None
 
+    @property
+    def age(self):
+        if not self.date_of_birth:
+            return None
+        return date.today().year - self.date_of_birth.year
+
 
 @dataclass
 class Medication(BaseModel):

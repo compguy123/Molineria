@@ -24,7 +24,7 @@ class InvalidConnectionException(MolineriaDataException):
             message = "Failed to connect to database."
         self._message = message
         self._inner_exception = inner_exception
-        super().__init__(message, *args)
+        super().__init__(message=message, *args)
 
 
 class InvalidDatabaseException(MolineriaDataException):
@@ -38,4 +38,4 @@ class InvalidDatabaseException(MolineriaDataException):
             message = "Database is in an invalid state."
         self._message = message
         self._inner_exception = inner_exception
-        super().__init__(message, *args)
+        super().__init__(message=message, *args)

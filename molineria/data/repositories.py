@@ -2,24 +2,25 @@ from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 from sqlite3 import Connection, Cursor, Error
 from contextlib import closing
-import data
+import data.models as ModelTypes
 from data.exceptions import MolineriaDataException
 from data.models import BaseModel
+from util.string_util import from_snake_case_to_pascal_case
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
 
 class BaseDataRepository(ABC, Generic[TModel]):
-    _conn: Connection | None = None
-    _table_name: str | None = None
-    _select_cols: str | None = None
-    _type: type | None = None
+    _conn: Connection
+    _table_name: str = ""
+    _select_cols: str = ""
+    _type: type
 
     def __init__(
         self,
-        connection: Connection | None,
-        table_name: str | None,
-        select_cols: str | None,
+        connection: Connection,
+        table_name: str,
+        select_cols: str,
     ) -> None:
         self._conn = connection
         self._table_name = table_name
@@ -33,19 +34,18 @@ class BaseDataRepository(ABC, Generic[TModel]):
     def _print_value(self, category: str, value: Any) -> None:
         print(f"{__class__.__name__}.{__name__}(...) - {category} - ", value)
 
-    def _from_snake_case_to_pascal_case(self, value: str) -> str:
-        return value.replace("_", " ").title().replace(" ", "")
-
     def _get_model_type_by_table_name(self) -> type:
         try:
-            model_name = self._from_snake_case_to_pascal_case(self._table_name)
-            return getattr(data.models, model_name)
+            model_name = from_snake_case_to_pascal_case(self._table_name)
+            return getattr(ModelTypes, model_name)
         except AttributeError as err:
             self._print_value("DB MAPPING TO MODEL ERROR:", err)
-            return None
+            raise MolineriaDataException(
+                f"Failed to get model type by table name '{self._table_name}'"
+            )
 
     @abstractmethod
-    def get(self, id: int) -> TModel | None:
+    def get(self, id: int) -> TModel:
         if id <= 0:
             raise MolineriaDataException("id must be > 0.")
         sql = f"""
@@ -57,7 +57,7 @@ class BaseDataRepository(ABC, Generic[TModel]):
         with closing(self._conn.execute(sql, (id,))) as cursor:
             records: list[tuple] = cursor.fetchall()
             if len(records) > 0:
-                found_record = self._get_model_type_by_table_name()(*records[0])
+                found_record: TModel = self._get_model_type_by_table_name()(*records[0])
                 return found_record
 
     @abstractmethod
@@ -70,13 +70,13 @@ class BaseDataRepository(ABC, Generic[TModel]):
         with closing(self._conn.execute(sql)) as cursor:
             records: list[tuple] = cursor.fetchall()
             if len(records) > 0:
-                found_records = [
+                found_records: list[TModel] = [
                     self._get_model_type_by_table_name()(*record) for record in records
                 ]
                 return found_records
 
     @abstractmethod
-    def create(self, record: TModel) -> TModel | None:
+    def create(self, record: TModel) -> TModel:
         if record is None or record.id != 0:
             raise MolineriaDataException(
                 "record cannot be None and record.id must be == 0."
@@ -95,13 +95,18 @@ class BaseDataRepository(ABC, Generic[TModel]):
         try:
             with self._conn as conn:
                 with closing(conn.execute(sql, dict)) as cursor:
-                    return self.get(cursor.lastrowid)
+                    id = cursor.lastrowid
+                    if not id:
+                        raise MolineriaDataException(
+                            "Failed to retreive ID after insert."
+                        )
+                    return self.get(id)
         except Error as err:
             self._print_value("CREATE ERROR:", err)
             raise MolineriaDataException(inner_exception=err)
 
     @abstractmethod
-    def update(self, record: TModel) -> TModel | None:
+    def update(self, record: TModel) -> TModel:
         if record is None or record.id <= 0:
             raise MolineriaDataException(
                 "record cannot be None and record.id must be > 0."
@@ -115,10 +120,9 @@ class BaseDataRepository(ABC, Generic[TModel]):
             {names_parameters}
             WHERE id = @id;
             """
-        cursor: Cursor
         try:
             with self._conn as conn:
-                with closing(conn.execute(sql, dict)) as cursor:
+                with closing(conn.execute(sql, dict)):
                     return self.get(record.id)
         except Error as err:
             self._print_value("UPDATE ERROR:", err)
@@ -145,22 +149,23 @@ class BaseDataRepository(ABC, Generic[TModel]):
 class FakeDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     def __init__(
         self,
-        connection: Connection | None,
-        table_name: str | None,
-        select_cols: str | None,
+        connection: Connection,
+        table_name: str,
+        select_cols: str,
     ) -> None:
         super().__init__(connection, table_name, select_cols)
 
-    def get(self, id: int) -> TModel | None:
-        return None
+    def get(self, id: int) -> TModel:
+        model_type = self._get_model_type_by_table_name()
+        return model_type()
 
     def get_all(self) -> list[TModel]:
         return []
 
-    def create(self, record: TModel) -> TModel | None:
+    def create(self, record: TModel) -> TModel:
         return record
 
-    def update(self, record: TModel) -> TModel | None:
+    def update(self, record: TModel) -> TModel:
         return record
 
     def delete(self, id: int) -> bool:
@@ -176,16 +181,16 @@ class MolineriaDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     ) -> None:
         super().__init__(connection, table_name, select_cols)
 
-    def get(self, id: int) -> TModel | None:
+    def get(self, id: int) -> TModel:
         return super().get(id)
 
     def get_all(self) -> list[TModel]:
         return super().get_all()
 
-    def create(self, record: TModel) -> TModel | None:
+    def create(self, record: TModel) -> TModel:
         return super().create(record)
 
-    def update(self, record: TModel) -> TModel | None:
+    def update(self, record: TModel) -> TModel:
         return super().update(record)
 
     def delete(self, id: int) -> bool:

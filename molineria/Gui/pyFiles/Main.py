@@ -1,6 +1,6 @@
 from kivy.lang import Builder
 
-from molineria.Gui.pyFiles.WindowManager import WindowManager
+from Gui.pyFiles.WindowManager import WindowManager
 from kivy.app import App
 
 
