@@ -3,17 +3,11 @@ from datetime import datetime
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
-<<<<<<<< HEAD:Gui/pyFiles/InsertUser.py
-========
+
 from datetime import date, datetime
 
-from data.models import User
-from data.unit_of_work import MolineriaUnitOfWork
-
-
-class Homepage(Screen):
-    pass
->>>>>>>> dev:molineria/Gui/main.py
+from molineria.data.models import User
+from molineria.data.unit_of_work import MolineriaUnitOfWork
 
 
 class InsertUser(Screen):
@@ -22,10 +16,10 @@ class InsertUser(Screen):
     dob = ObjectProperty(None)
 
     def createUser(self):
-        unit_of_work = MolineriaUnitOfWork("molineria/data/molineria.db")
-        with unit_of_work:
-            # check user variables are valid
-            if self.userName.text != "" and self.validateDate():
+        # check user variables are valid
+        if self.userName.text != "" and self.validateDate():
+            unit_of_work = MolineriaUnitOfWork("molineria/data/molineria.db")
+            with unit_of_work:
                 parsed_date = datetime.strptime(self.dob.text, "%Y-%m-%d")
                 user = User(
                     name=self.userName.text,
@@ -34,17 +28,10 @@ class InsertUser(Screen):
                 )
                 inserted_user = unit_of_work.user_repo.create(user)
                 print(f"INSERTED USER: {inserted_user}")
-
-<<<<<<<< HEAD:Gui/pyFiles/InsertUser.py
-            self.reset()
+                self.reset()
         else:
             invalidUser()
-========
-                self.reset()
-                windowManager.current = "ShowUser"
-            else:
-                invalidUser()
->>>>>>>> dev:molineria/Gui/main.py
+
 
     # reset user variable
     def reset(self):
@@ -66,33 +53,6 @@ class InsertUser(Screen):
             return False
 
 
-<<<<<<<< HEAD:Gui/pyFiles/InsertUser.py
-========
-class ShowUser(Screen):
-    pass
-
-
-class WindowManager(ScreenManager):
-    pass
-
-
-# load kv file
-kv = Builder.load_file("Gui/my.kv")
-
-# screen manager
-windowManager = WindowManager()
-
-# change screens in code
-screens = {
-    Homepage(name="Homepage"),
-    InsertUser(name="InsertUser"),
-    ShowUser(name="ShowUser"),
-}
-for screen in screens:
-    windowManager.add_widget(screen)
-
-
->>>>>>>> dev:molineria/Gui/main.py
 # create pipup
 def invalidUser():
     pop = Popup(

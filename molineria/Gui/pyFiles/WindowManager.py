@@ -2,9 +2,9 @@ from kivy.app import App
 from kivy.lang.builder import Builder
 from kivy.uix.screenmanager import ScreenManager
 
-from Gui.pyFiles.Homepage import Homepage
-from Gui.pyFiles.InsertUser import InsertUser
-from Gui.pyFiles.ShowUser import ShowUser
+from molineria.Gui.pyFiles.Homepage import Homepage
+from molineria.Gui.pyFiles.InsertUser import InsertUser
+from molineria.Gui.pyFiles.ShowUser import ShowUser
 
 
 class WindowManager(ScreenManager):
@@ -18,6 +18,3 @@ class WindowManager(ScreenManager):
         for screen in screens:
             self.add_widget(screen)
 
-# load kv file
-
-# screen manager
