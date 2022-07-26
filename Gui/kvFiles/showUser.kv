@@ -1,0 +1,24 @@
+#:include Gui/kvFiles/rv.kv
+
+<ShowUser>:
+    FloatLayout:
+        RV:
+            size_hint:(.7,.6)
+            pos_hint:{"x":.15, "top":.85}
+        Button:
+            text: "Cancel"
+            pos_hint:{"x":.43, "top":.15}
+            on_press:
+                app.root.current= "InsertUser"
+                root.manager.transition.direction = "right"
+
+        Label:
+            text:"Users"
+            pos_hint:{"x":.43, "top":1}
+            size_hint: (0.15,0.1)
+            font_size:'50sp'
+            font_name:'comic'
+            color: 13/255,135/255,13/255,1
+
+
+
