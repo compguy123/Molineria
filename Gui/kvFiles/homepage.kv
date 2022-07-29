@@ -22,6 +22,9 @@
         Button:
             text: "Existing User"
             pos_hint:{"x":.7, "top":.6}
+            on_press:
+                app.root.current= "ShowUser"
+                root.manager.transition.direction = "left"
 
         Image:
             source:"Gui/kvFiles/molineria.png"

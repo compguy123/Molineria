@@ -5,5 +5,6 @@ from Gui.pyFiles.RV import RV
 
 
 class ShowUser(Screen):
-    # initalize recycler vierer
-    rv = RV()
+
+    def on_enter(self, *args):
+        self.ids.userList.refreshList()
