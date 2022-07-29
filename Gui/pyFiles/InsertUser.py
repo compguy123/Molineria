@@ -43,10 +43,6 @@ class InsertUser(Screen):
         self.comments.text = ""
         self.dob.text = ""
 
-    # return to homepage
-    def homepage(self):
-        pass
-
     # check date
     def validateDate(self):
         if not self.dob or is_null_or_whitespace(self.dob.text):
@@ -64,4 +60,3 @@ class InsertUser(Screen):
         )
 
         self.pop.open()
-

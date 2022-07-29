@@ -3,13 +3,14 @@
 <ShowUser>:
     FloatLayout:
         RV:
+            id: userList
             size_hint:(.7,.6)
             pos_hint:{"x":.15, "top":.85}
         Button:
             text: "Cancel"
             pos_hint:{"x":.43, "top":.15}
             on_press:
-                app.root.current= "InsertUser"
+                app.root.current= "Homepage"
                 root.manager.transition.direction = "right"
 
         Label:
