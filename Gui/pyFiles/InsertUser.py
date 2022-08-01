@@ -35,6 +35,7 @@ class InsertUser(Screen):
                 self.reset()
                 return True
         else:
+            self.invalidUser()
             return False
 
     # reset user variable
@@ -56,7 +57,8 @@ class InsertUser(Screen):
     # create pipup
     def invalidUser(self):
         self.pop = Popup(
-            title="Error", content=Label(text="Invalid name or date."), size_hint=(0.4, 0.4)
+            title="Error", content=Label(text="Invalid name or date."), size_hint=(0.4, 0.4), auto_dismiss=True
         )
 
         self.pop.open()
+

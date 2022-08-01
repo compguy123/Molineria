@@ -11,4 +11,3 @@ class MyApp(App):
         Builder.load_file("Gui/kvFiles/main.kv")
         windowManager.initalize()
         return windowManager
-
