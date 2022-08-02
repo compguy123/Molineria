@@ -1,13 +1,38 @@
+#:include Gui/kvFiles/userRv.kv
+
 <UserPage>:
     userName : name
-
+    userDOB : DOB
     FloatLayout:
+        UserRV:
+            id: userMeds
+            size_hint:(.7,.6)
+            pos_hint:{"x":.15, "top":.85}
         Label:
             id: name
             text:"Name"
-            pos_hint:{"x":.43, "top":1}
+            pos_hint:{"x":.20, "top":1}
             size_hint: (0.15,0.1)
             font_size:'50sp'
             font_name:'comic'
             color: 13/255,135/255,13/255,1
 
+        Label:
+            id: DOB
+            text:"DOB"
+            pos_hint:{"x":.70, "top":1}
+            size_hint: (0.15,0.1)
+            font_size:'50sp'
+            font_name:'comic'
+            color: 13/255,135/255,13/255,1
+        Button:
+            text: "Go back"
+            pos_hint:{"x":.30, "top":.2}
+            on_press:
+                app.root.current= "ShowUser"
+                root.manager.transition.direction = "right"
+
+        Button:
+            text: "Add New Medication"
+            pos_hint:{"x":.50, "top":.2}
+            size_hint_x:.2

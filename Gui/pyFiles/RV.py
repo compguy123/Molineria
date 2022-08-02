@@ -27,7 +27,9 @@ class RV(RecycleView):
         unit_of_work = MolineriaUnitOfWork("data/molineria.db")
         with unit_of_work:
             app.user_name = unit_of_work.user_repo.get(id).name
+            app.user_DOB= unit_of_work.user_repo.get(id).date_of_birth
         app.root.current = "UserPage"
+        app.root.transition.direction = "left"
 
 
 class SelectableLabel(Button):

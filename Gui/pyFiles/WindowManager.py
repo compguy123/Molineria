@@ -22,6 +22,8 @@ class WindowManager(ScreenManager):
         for screen in screens:
             self.add_widget(screen)
 
-        user_name = None
-        user_DOB = None
-        user_comments = None
+        user_name = ""
+        user_DOB = ""
+        user_comments = ""
+
+
