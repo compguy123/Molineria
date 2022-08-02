@@ -43,6 +43,7 @@ class UserMedication(BaseModel):
     quantity: int = 0
     remaining_refills: int | None = None
     weight_in_milligrams: float | None = None
+    total_weight_in_milligrams: float | None = None
     filled_on: date | None = None
     discard_on: date | None = None
 
@@ -53,7 +54,7 @@ class UserMedicationRefill(BaseModel):
     pharmacy_id: int = 0
     prescribed_by: str | None = None
     refilled_on: date | None = None
-    amount: int | None = None
+    amount_in_milligrams: float | None = None
     comment: str | None = None
 
 
