@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
-from sqlite3 import Connection, Cursor, Error
+from sqlite3 import Connection, Cursor, Error, IntegrityError
 from contextlib import closing
 import data.models as ModelTypes
-from data.exceptions import MolineriaDataException
+from data.exceptions import MolineriaDataException, UniqueConstraintException
 from data.models import BaseModel
 from util.string_util import from_snake_case_to_pascal_case
 
@@ -101,6 +101,9 @@ class BaseDataRepository(ABC, Generic[TModel]):
                             "Failed to retreive ID after insert."
                         )
                     return self.get(id)
+        except IntegrityError as err:
+            self._print_value("CREATE ERROR -> UniqueConstraintException:", err)
+            raise UniqueConstraintException(inner_exception=err)
         except Error as err:
             self._print_value("CREATE ERROR:", err)
             raise MolineriaDataException(inner_exception=err)
@@ -124,6 +127,9 @@ class BaseDataRepository(ABC, Generic[TModel]):
             with self._conn as conn:
                 with closing(conn.execute(sql, dict)):
                     return self.get(record.id)
+        except IntegrityError as err:
+            self._print_value("UPDATE ERROR -> UniqueConstraintException:", err)
+            raise UniqueConstraintException(inner_exception=err)
         except Error as err:
             self._print_value("UPDATE ERROR:", err)
             raise MolineriaDataException(inner_exception=err)
