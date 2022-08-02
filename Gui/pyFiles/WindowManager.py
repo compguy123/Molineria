@@ -9,13 +9,16 @@ from Gui.pyFiles.UserPage import UserPage
 
 
 class WindowManager(ScreenManager):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def initalize(self):
-        screens = {Homepage(name="Homepage"), InsertUser(name="InsertUser"),
-                   ShowUser(name="ShowUser"), UserPage(name="UserPage")}
+        screens = {
+            Homepage(name="Homepage"),
+            InsertUser(name="InsertUser"),
+            ShowUser(name="ShowUser"),
+            UserPage(name="UserPage"),
+        }
         for screen in screens:
             self.add_widget(screen)
 

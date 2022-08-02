@@ -2,6 +2,7 @@ from kivy.app import App
 from kivy.properties import ObjectProperty, NumericProperty
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.button import Button
+from data.specifications import GetAllUsersOrderedSpec
 from data.unit_of_work import MolineriaUnitOfWork
 
 
@@ -13,9 +14,12 @@ class RV(RecycleView):
         # assigning data in RecyclerView
         unit_of_work = MolineriaUnitOfWork("data/molineria.db")
         with unit_of_work:
-            users = unit_of_work.user_repo.get_all()
+            spec = GetAllUsersOrderedSpec(unit_of_work.user_repo)
+            users = spec.execute()
             if users:
-                self.data = [{'text': str(u.name), 'id': u.id, "user": self} for u in users]
+                self.data = [
+                    {"text": u.name, "id": u.id, "user": self} for u in users
+                ]
 
     def getApp(self, id):
         # get id

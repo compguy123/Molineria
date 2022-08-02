@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS "pharmacy" (
 
 CREATE TABLE IF NOT EXISTS "user" (
 	"id"	INTEGER,
-	"name"	TEXT NOT NULL,
+	"name"	TEXT NOT NULL UNIQUE,
 	"date_of_birth"	TEXT,
 	"comment"	TEXT,
 	PRIMARY KEY("id" AUTOINCREMENT)
@@ -30,11 +30,13 @@ CREATE TABLE IF NOT EXISTS "user_medication" (
 	"quantity"	INTEGER NOT NULL,
 	"remaining_refills"	INTEGER,
 	"weight_in_milligrams"	REAL,
+	"total_weight_in_milligrams"	REAL,
 	"filled_on"	TEXT,
 	"discard_on"	TEXT,
 	PRIMARY KEY("id" AUTOINCREMENT),
 	FOREIGN KEY("user_id") REFERENCES "user"("id"),
 	FOREIGN KEY("medication_id") REFERENCES "medication"("id")
+	UNIQUE ("user_id", "medication_id")
 );
 
 CREATE TABLE IF NOT EXISTS "user_medication_refill" (
@@ -43,9 +45,19 @@ CREATE TABLE IF NOT EXISTS "user_medication_refill" (
 	"pharmacy_id"	INTEGER NOT NULL,
 	"prescribed_by"	TEXT,
 	"refilled_on"	TEXT,
-	"amount"	INTEGER,
+	"amount_in_milligrams"	REAL,
 	"comment"	TEXT,
 	FOREIGN KEY("pharmacy_id") REFERENCES "pharmacy"("id"),
+	FOREIGN KEY("user_medication_id") REFERENCES "user_medication"("id"),
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE IF NOT EXISTS "user_medication_intake" (
+	"id"	INTEGER,
+	"user_medication_id"	INTEGER NOT NULL,
+	"time"	TEXT,
+	"amount_in_milligrams"	REAL,
+	"days_of_week"	TEXT,
 	FOREIGN KEY("user_medication_id") REFERENCES "user_medication"("id"),
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
