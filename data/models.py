@@ -1,6 +1,17 @@
 from abc import ABC
 from dataclasses import dataclass
-from datetime import date
+from datetime import time, date
+from enum import Enum
+
+
+class DayOfWeek(Enum):
+    Monday = "monday"
+    Tuesday = "tuesday"
+    Wednesday = "wednesday"
+    Thursday = "thursday"
+    Friday = "friday"
+    Saturday = "saturday"
+    Sunday = "sunday"
 
 
 @dataclass
@@ -58,5 +69,20 @@ class UserMedicationRefill(BaseModel):
     comment: str | None = None
 
 
+@dataclass
+class UserMedicationIntake(BaseModel):
+    user_medication_id: int = 0
+    time: time = time.min
+    amount_in_milligrams: float = 0
+    days_of_week: str = ""
+
+    def has_day_of_week(self, target: DayOfWeek) -> bool:
+        if not self.days_of_week or not target:
+            return False
+        days_of_week_list = self.days_of_week.lower().split(",")
+        return any(filter(lambda d: d == target.value, days_of_week_list))
+
+
+# <time>.strftime("%I:%M:%S") -> 12 hr format
 ### get field names in order
-# ",".join([k for k in vars(UserMedicationRefill()).keys()])
+# ",".join([k for k in vars(UserMedicationIntake()).keys()])

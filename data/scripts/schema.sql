@@ -51,3 +51,13 @@ CREATE TABLE IF NOT EXISTS "user_medication_refill" (
 	FOREIGN KEY("user_medication_id") REFERENCES "user_medication"("id"),
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
+
+CREATE TABLE IF NOT EXISTS "user_medication_intake" (
+	"id"	INTEGER,
+	"user_medication_id"	INTEGER NOT NULL,
+	"time"	TEXT,
+	"amount_in_milligrams"	REAL,
+	"days_of_week"	TEXT,
+	FOREIGN KEY("user_medication_id") REFERENCES "user_medication"("id"),
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
