@@ -56,9 +56,11 @@ class BaseDataRepository(ABC, Generic[TModel]):
         cursor: Cursor
         with closing(self._conn.execute(sql, (id,))) as cursor:
             records: list[tuple] = cursor.fetchall()
-            if len(records) > 0:
-                found_record: TModel = self._get_model_type_by_table_name()(*records[0])
-                return found_record
+            if len(records) <= 0:
+                return None
+
+            found_record: TModel = self._get_model_type_by_table_name()(*records[0])
+            return found_record
 
     @abstractmethod
     def get_all(self) -> list[TModel]:
@@ -69,11 +71,13 @@ class BaseDataRepository(ABC, Generic[TModel]):
         cursor: Cursor
         with closing(self._conn.execute(sql)) as cursor:
             records: list[tuple] = cursor.fetchall()
-            if len(records) > 0:
-                found_records: list[TModel] = [
-                    self._get_model_type_by_table_name()(*record) for record in records
-                ]
-                return found_records
+            if len(records) <= 0:
+                return []
+
+            found_records: list[TModel] = [
+                self._get_model_type_by_table_name()(*record) for record in records
+            ]
+            return found_records
 
     @abstractmethod
     def create(self, record: TModel) -> TModel:
@@ -93,14 +97,11 @@ class BaseDataRepository(ABC, Generic[TModel]):
             """
         cursor: Cursor
         try:
-            with self._conn as conn:
-                with closing(conn.execute(sql, dict)) as cursor:
-                    id = cursor.lastrowid
-                    if not id:
-                        raise MolineriaDataException(
-                            "Failed to retreive ID after insert."
-                        )
-                    return self.get(id)
+            with closing(self._conn.execute(sql, dict)) as cursor:
+                id = cursor.lastrowid
+                if not id:
+                    raise MolineriaDataException("Failed to retreive ID after insert.")
+                return self.get(id)
         except IntegrityError as err:
             self._print_value("CREATE ERROR -> UniqueConstraintException:", err)
             raise UniqueConstraintException(inner_exception=err)
@@ -124,9 +125,8 @@ class BaseDataRepository(ABC, Generic[TModel]):
             WHERE id = @id;
             """
         try:
-            with self._conn as conn:
-                with closing(conn.execute(sql, dict)):
-                    return self.get(record.id)
+            with closing(self._conn.execute(sql, dict)):
+                return self.get(record.id)
         except IntegrityError as err:
             self._print_value("UPDATE ERROR -> UniqueConstraintException:", err)
             raise UniqueConstraintException(inner_exception=err)
@@ -144,9 +144,8 @@ class BaseDataRepository(ABC, Generic[TModel]):
             """
         cursor: Cursor
         try:
-            with self._conn as conn:
-                with closing(conn.execute(sql, (id,))) as cursor:
-                    return cursor.rowcount == 1
+            with closing(self._conn.execute(sql, (id,))) as cursor:
+                return cursor.rowcount == 1
         except Error as err:
             self._print_value("DELETE ERROR:", err)
             raise MolineriaDataException(inner_exception=err)

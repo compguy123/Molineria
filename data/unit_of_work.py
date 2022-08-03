@@ -70,9 +70,11 @@ class BaseUnitOfWork(ABC):
 
     def __enter__(self) -> None:
         self.ensure_database_created()
+        self._conn.__enter__()
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         if self._conn:
+            self._conn.__exit__(exc_type, exc_value, traceback)
             self._conn.close()
         if self._user_repo:
             self._user_repo.close()
