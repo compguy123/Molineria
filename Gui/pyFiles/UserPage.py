@@ -15,12 +15,14 @@ class UserPage(Screen, RecycleView):
 
     def on_enter(self, *args):
         app = App.get_running_app()
+        id = app.user_id
         name = app.user_name
         DOB  = app.user_DOB
         if DOB is None:
             DOB =""
         self.userName.text = name
         self.userDOB.text = DOB
+
         #show user its medication
         unit_of_work = MolineriaUnitOfWork("data/molineria.db")
         with unit_of_work:

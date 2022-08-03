@@ -6,6 +6,7 @@ from Gui.pyFiles.Homepage import Homepage
 from Gui.pyFiles.InsertUser import InsertUser
 from Gui.pyFiles.ShowUser import ShowUser
 from Gui.pyFiles.UserPage import UserPage
+from Gui.pyFiles.AddMedication import AddMedication
 
 
 class WindowManager(ScreenManager):
@@ -18,6 +19,7 @@ class WindowManager(ScreenManager):
             InsertUser(name="InsertUser"),
             ShowUser(name="ShowUser"),
             UserPage(name="UserPage"),
+            AddMedication(name="AddMedication")
         }
         for screen in screens:
             self.add_widget(screen)
@@ -25,5 +27,4 @@ class WindowManager(ScreenManager):
         user_name = ""
         user_DOB = ""
         user_comments = ""
-
-
+        user_id =0
