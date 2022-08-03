@@ -244,8 +244,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
             self._ensure_connection_created()
             self._user_repo = MolineriaDataRepository[User](
                 connection=self._conn,
-                table_name="user",
-                select_cols="id,name,date_of_birth,comment",
+                table_name=User().get_table_name(),
+                select_cols=User().get_select_cols_str(),
             )
         return self._user_repo
 
@@ -255,8 +255,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
             self._ensure_connection_created()
             self._medication_repo = MolineriaDataRepository[Medication](
                 connection=self._conn,
-                table_name="medication",
-                select_cols="id,name,image_url,wiki_identifier",
+                table_name=Medication().get_table_name(),
+                select_cols=Medication().get_select_cols_str(),
             )
         return self._medication_repo
 
@@ -266,8 +266,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
             self._ensure_connection_created()
             self._pharmacy_repo = MolineriaDataRepository[Pharmacy](
                 connection=self._conn,
-                table_name="pharmacy",
-                select_cols="id,name,phone_number,location",
+                table_name=Pharmacy().get_table_name(),
+                select_cols=Pharmacy().get_select_cols_str(),
             )
         return self._pharmacy_repo
 
@@ -277,8 +277,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
             self._ensure_connection_created()
             self._user_medication_repo = MolineriaDataRepository[UserMedication](
                 connection=self._conn,
-                table_name="user_medication",
-                select_cols="id,user_id,rx_number,quantity,remaining_refills,weight_in_milligrams,filled_on,discard_on",
+                table_name=UserMedication().get_table_name(),
+                select_cols=UserMedication().get_select_cols_str(),
             )
         return self._user_medication_repo
 
@@ -290,8 +290,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
                 UserMedicationRefill
             ](
                 connection=self._conn,
-                table_name="user_medication_refill",
-                select_cols="id,user_medication_id,medication_id,pharmacy_id,prescribed_by,refilled_on,amount,comment",
+                table_name=UserMedicationRefill().get_table_name(),
+                select_cols=UserMedicationRefill().get_select_cols_str(),
             )
         return self._user_medication_refill_repo
 
@@ -303,7 +303,7 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
                 UserMedicationIntake
             ](
                 connection=self._conn,
-                table_name="user_medication_intake",
-                select_cols="id,user_medication_id,time,amount_in_milligrams,days_of_week",
+                table_name=UserMedicationIntake().get_table_name(),
+                select_cols=UserMedicationIntake().get_select_cols_str(),
             )
         return self._user_medication_intake_repo
