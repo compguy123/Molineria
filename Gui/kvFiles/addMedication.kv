@@ -1,0 +1,31 @@
+<AddMedication>:
+    name : "AddMedication"
+    medname: med
+    rxnumber: rx
+
+    TextInput:
+        id:med
+        pos_hint: {"x":0.33, "top":.8}
+        size_hint: 0.4, 0.1
+        multiline: False
+        font_size: (root.width**2 + root.height**2) / 14**4
+
+    Button:
+        text: "Add Medication"
+        pos_hint:{"x":.35, "top":.2}
+        on_press:
+            root.manager.transition.direction = "left"
+            app.root.current="UserPage" if root.onCreate() else "AddMedication"
+    TextInput:
+        id:rx
+        pos_hint: {"x":0.33, "top":.6}
+        size_hint: 0.4, 0.1
+        multiline: False
+        font_size: (root.width**2 + root.height**2) / 14**4
+
+    Button:
+        text: "Cancel"
+        pos_hint:{"x":.55, "top":.2}
+        on_press:
+            root.manager.transition.direction = "right"
+            app.root.current= "UserPage"

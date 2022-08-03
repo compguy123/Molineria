@@ -5,6 +5,7 @@ from kivy.uix.label import Label
 
 from datetime import date, datetime
 
+from data.exceptions import UniqueConstraintException
 from data.models import User
 from data.unit_of_work import MolineriaUnitOfWork
 
@@ -30,12 +31,17 @@ class InsertUser(Screen):
                     date_of_birth=parsed_date,
                     comment=self.comments.text,
                 )
-                inserted_user = unit_of_work.user_repo.create(user)
-                print(f"INSERTED USER: {inserted_user}")
-                self.reset()
-                return True
+                try:
+                    inserted_user = unit_of_work.user_repo.create(user)
+                    print(f"INSERTED USER: {inserted_user}")
+                    self.reset()
+                    return True
+                except UniqueConstraintException:
+                    self.invalidUser("Duplicate Name")
+                    return False
+
         else:
-            self.invalidUser()
+            self.invalidUser("Invalid Name or Date")
             return False
 
     # reset user variable
@@ -55,9 +61,9 @@ class InsertUser(Screen):
             return False
 
     # create pipup
-    def invalidUser(self):
+    def invalidUser(self, text):
         self.pop = Popup(
-            title="Error", content=Label(text="Invalid name or date."), size_hint=(0.4, 0.4), auto_dismiss=True
+            title="Error", content=Label(text=text), size_hint=(0.4, 0.4), auto_dismiss=True
         )
 
         self.pop.open()
