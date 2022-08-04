@@ -18,16 +18,13 @@
         text: "Cancel"
         pos_hint:{"x":.55, "top":.2}
         on_press:
-            root.manager.transition.direction = "right"
-            app.root.current= "Homepage"
-
+            app.go_right("Homepage")
 
     Button:
         text: "Create User"
         pos_hint:{"x":.35, "top":.2}
         on_press:
-            root.manager.transition.direction = "left"
-            app.root.current="ShowUser" if root.createUser() else "InsertUser"
+            app.go_left("ShowUser" if root.createUser() else "InsertUser")
 
 
 

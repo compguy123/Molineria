@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from datetime import time, date
 from enum import Enum
 
+from util.string_util import to_snake_case
+
 
 class DayOfWeek(Enum):
     Monday = "monday"
@@ -17,6 +19,15 @@ class DayOfWeek(Enum):
 @dataclass
 class BaseModel(ABC):
     id: int = 0
+
+    def get_select_cols(self):
+        return list(map(lambda x: x, vars(self)))
+
+    def get_select_cols_str(self):
+        return ",".join(self.get_select_cols())
+
+    def get_table_name(self):
+        return to_snake_case(self.__class__.__name__)
 
 
 @dataclass
@@ -81,6 +92,12 @@ class UserMedicationIntake(BaseModel):
             return False
         days_of_week_list = self.days_of_week.lower().split(",")
         return any(filter(lambda d: d == target.value, days_of_week_list))
+
+
+@dataclass
+class UserMedicationDetailDTO:
+    medication: Medication
+    user_medication: UserMedication
 
 
 # <time>.strftime("%I:%M:%S") -> 12 hr format

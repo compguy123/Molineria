@@ -1,12 +1,10 @@
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen
-from kivy.app import App
-
 from kivy.uix.recycleview import RecycleView
-
-from Gui.pyFiles.UserRV import UserRV
-from data import unit_of_work
+from Gui.pyFiles.state_store import get_state
+from data.specifications import GetAllUsersMedicationDetails
 from data.unit_of_work import MolineriaUnitOfWork
+from Gui.pyFiles.UserRV import UserRV
 
 
 class UserPage(Screen, RecycleView):
@@ -14,19 +12,20 @@ class UserPage(Screen, RecycleView):
     userDOB = ObjectProperty()
 
     def on_enter(self, *args):
-        app = App.get_running_app()
-        id = app.user_id
-        name = app.user_name
-        DOB  = app.user_DOB
-        if DOB is None:
-            DOB =""
+        state = get_state()
+        id = state.current_user.id
+        name = state.current_user.name
+        date_of_birth = state.current_user.date_of_birth
+        date_of_birth = date_of_birth if date_of_birth else ""
         self.userName.text = name
-        self.userDOB.text = DOB
+        self.userDOB.text = date_of_birth
 
-        #show user its medication
+        # show user its medication
         unit_of_work = MolineriaUnitOfWork("data/molineria.db")
         with unit_of_work:
-            users = unit_of_work.user_repo.get_all()
-            if users:
-                self.data = [{'text': str(u.name)} for u in users]
-                self.ids.userMeds.refreshMeds(self.data)
+            spec = GetAllUsersMedicationDetails(unit_of_work, id)
+            user_medications = spec.execute()
+            if user_medications:
+                self.data = [{"text": str(u.medication.name)} for u in user_medications]
+                user_meds: UserRV = self.ids.userMeds
+                user_meds.refreshMeds(self.data)

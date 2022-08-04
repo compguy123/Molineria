@@ -8,3 +8,7 @@ def is_null_or_empty(value: str | None) -> bool:
 
 def from_snake_case_to_pascal_case(value: str) -> str:
     return value.replace("_", " ").title().replace(" ", "")
+
+
+def to_snake_case(value: str) -> str:
+    return "".join([f"_{c.lower()}" if c.isupper() else c for c in value]).lstrip("_")

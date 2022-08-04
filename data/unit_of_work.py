@@ -1,9 +1,15 @@
 import os
-import sqlite3
+from sqlite3 import Connection, Cursor, Error, IntegrityError, connect
 from contextlib import closing
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Any
-from data.exceptions import InvalidConnectionException, InvalidDatabaseException
+from data.exceptions import (
+    InvalidConnectionException,
+    InvalidDatabaseException,
+    MolineriaDataException,
+    UniqueConstraintException,
+)
+import data.models as ModelTypes
 from data.models import (
     Medication,
     Pharmacy,
@@ -17,12 +23,12 @@ from data.repositories import (
     FakeDataRepository,
     MolineriaDataRepository,
 )
-from util.string_util import is_null_or_whitespace
+from util.string_util import from_snake_case_to_pascal_case, is_null_or_whitespace
 
 
 class BaseUnitOfWork(ABC):
     _database_name: str
-    _conn: sqlite3.Connection
+    _conn: Connection
     _schema_sql_script: str
     _required_tables: list[str] = [
         "medication",
@@ -55,7 +61,7 @@ class BaseUnitOfWork(ABC):
 
     def _ensure_connection_created(self) -> None:
         if (not hasattr(self, "_conn")) or (not self._conn):
-            self._conn = sqlite3.connect(self._database_name)
+            self._conn = connect(self._database_name)
 
     def _is_missing_any_tables(self, required_tables: list[str]) -> bool:
         self._ensure_connection_created()
@@ -68,11 +74,18 @@ class BaseUnitOfWork(ABC):
                     return True
             return False
 
+    @staticmethod
+    def get_model_type_by_table_name(table_name) -> type:
+        model_name = from_snake_case_to_pascal_case(table_name)
+        return getattr(ModelTypes, model_name)
+
     def __enter__(self) -> None:
         self.ensure_database_created()
+        self._conn.__enter__()
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         if self._conn:
+            self._conn.__exit__(exc_type, exc_value, traceback)
             self._conn.close()
         if self._user_repo:
             self._user_repo.close()
@@ -118,6 +131,21 @@ class BaseUnitOfWork(ABC):
     @abstractmethod
     def ensure_database_created(self) -> None:
         pass
+
+    @abstractmethod
+    def execute_sql(self, sql: str, parameters: dict[str, Any]):
+        cursor: Cursor
+        try:
+            with self._conn as conn:
+                with closing(conn.execute(sql, parameters)) as cursor:
+                    records: list[tuple] = cursor.fetchall()
+                    return records
+        except IntegrityError as err:
+            self._print_value("EXEC SPEC ERROR -> UniqueConstraintException:", err)
+            raise UniqueConstraintException(inner_exception=err)
+        except Error as err:
+            self._print_value("EXEC SPEC ERROR:", err)
+            raise MolineriaDataException(inner_exception=err)
 
 
 class FakeUnitOfWork(BaseUnitOfWork):
@@ -191,6 +219,9 @@ class FakeUnitOfWork(BaseUnitOfWork):
             )
         return self._user_medication_intake_repo
 
+    def execute_sql(self, sql: str, parameters: dict[str, Any]) -> list[tuple]:
+        return []
+
 
 class MolineriaUnitOfWork(BaseUnitOfWork):
     def __init__(self, database_name: str) -> None:
@@ -242,8 +273,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
             self._ensure_connection_created()
             self._user_repo = MolineriaDataRepository[User](
                 connection=self._conn,
-                table_name="user",
-                select_cols="id,name,date_of_birth,comment",
+                table_name=User().get_table_name(),
+                select_cols=User().get_select_cols_str(),
             )
         return self._user_repo
 
@@ -253,8 +284,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
             self._ensure_connection_created()
             self._medication_repo = MolineriaDataRepository[Medication](
                 connection=self._conn,
-                table_name="medication",
-                select_cols="id,name,image_url,wiki_identifier",
+                table_name=Medication().get_table_name(),
+                select_cols=Medication().get_select_cols_str(),
             )
         return self._medication_repo
 
@@ -264,8 +295,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
             self._ensure_connection_created()
             self._pharmacy_repo = MolineriaDataRepository[Pharmacy](
                 connection=self._conn,
-                table_name="pharmacy",
-                select_cols="id,name,phone_number,location",
+                table_name=Pharmacy().get_table_name(),
+                select_cols=Pharmacy().get_select_cols_str(),
             )
         return self._pharmacy_repo
 
@@ -275,8 +306,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
             self._ensure_connection_created()
             self._user_medication_repo = MolineriaDataRepository[UserMedication](
                 connection=self._conn,
-                table_name="user_medication",
-                select_cols="id,user_id,rx_number,quantity,remaining_refills,weight_in_milligrams,filled_on,discard_on",
+                table_name=UserMedication().get_table_name(),
+                select_cols=UserMedication().get_select_cols_str(),
             )
         return self._user_medication_repo
 
@@ -288,8 +319,8 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
                 UserMedicationRefill
             ](
                 connection=self._conn,
-                table_name="user_medication_refill",
-                select_cols="id,user_medication_id,medication_id,pharmacy_id,prescribed_by,refilled_on,amount,comment",
+                table_name=UserMedicationRefill().get_table_name(),
+                select_cols=UserMedicationRefill().get_select_cols_str(),
             )
         return self._user_medication_refill_repo
 
@@ -301,7 +332,10 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
                 UserMedicationIntake
             ](
                 connection=self._conn,
-                table_name="user_medication_intake",
-                select_cols="id,user_medication_id,time,amount_in_milligrams,days_of_week",
+                table_name=UserMedicationIntake().get_table_name(),
+                select_cols=UserMedicationIntake().get_select_cols_str(),
             )
         return self._user_medication_intake_repo
+
+    def execute_sql(self, sql: str, parameters: dict[str, Any]):
+        return super().execute_sql(sql, parameters)
