@@ -7,7 +7,7 @@ from kivy.uix.screenmanager import Screen
 from data.exceptions import UniqueConstraintException
 from data.models import Medication, UserMedication
 from data.unit_of_work import MolineriaUnitOfWork
-from util.string_util import is_null_or_whitespace
+
 
 
 class AddMedication(Screen):
@@ -41,7 +41,7 @@ class AddMedication(Screen):
                     created_med = False
                 return created_med
         else:
-            self.invalidUser("Invalid Name or Date")
+            self.invalidUser("Enter a Medication")
             return False
 
         # create pipup
