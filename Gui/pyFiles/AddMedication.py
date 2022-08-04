@@ -62,3 +62,4 @@ class AddMedication(Screen):
 
     def reset(self):
         self.medname.text = ""
+        self.rxnumber.text = ""

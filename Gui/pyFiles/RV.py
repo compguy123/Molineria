@@ -23,7 +23,10 @@ class RV(RecycleView):
         unit_of_work = MolineriaUnitOfWork("data/molineria.db")
         with unit_of_work:
             state = get_state()
-            state.current_user = unit_of_work.user_repo.get(id)
+            user = unit_of_work.user_repo.get(id)
+            if not user:
+                raise Exception(f"failed to get user {id}")
+            state.current_user = user
             NavigationManager.go_left("UserPage")
 
 

@@ -63,7 +63,7 @@ class TupleMapper:
                 # try and get ctor parameter types - NOTE: this requires the ordering of parameters to match
                 multiType = tuple([k for k in dest.__annotations__.values()])
 
-            tup: tuple = tuple(*self.values)
+            tup: tuple = tuple(self.values)
             types = list(multiType)
             mapped = TupleMapper.map_multi(types, tup)
             v = TupleMapper.map_into(dest, mapped)
@@ -91,31 +91,31 @@ class TupleMapper:
             v = TupleMapper.map_into_all(dest, mapped)
             return v
 
-
-# @dataclass
-# class Me1:
-#     id: int = 0
-#     name: str = ""
-
-
-# @dataclass
-# class Me2:
-#     id: int = 0
-#     name: str = ""
-#     date_of_birth: str = ""
+from dataclasses import dataclass
+@dataclass
+class Me1:
+    id: int = 0
+    name: str = ""
 
 
-# @dataclass
-# class Dto:
-#     me1: Me1 = Me1()
-#     me2: Me2 = Me2()
+@dataclass
+class Me2:
+    id: int = 0
+    name: str = ""
+    date_of_birth: str = ""
 
 
-## rely on Dto's field ordering for mapping multiple types (Me1 and Me2) into Dto
-# dto = TupleMapper.From(
-#     (1, "me-1", 2, "me-2", "2002-01-21")
-# ).to(Dto)
-# print(dto)
+@dataclass
+class Dto:
+    me1: Me1 = Me1()
+    me2: Me2 = Me2()
+
+
+# rely on Dto's field ordering for mapping multiple types (Me1 and Me2) into Dto
+dto = TupleMapper.From(
+    (1, "me-1", 2, "me-2", "2002-01-21")
+).to(Dto)
+print(dto)
 
 ## pass Dto's field types in order for mapping multiple types (Me1 and Me2) into Dto
 # dto = TupleMapper.From(

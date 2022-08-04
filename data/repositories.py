@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Type, TypeVar
 from sqlite3 import Connection, Cursor, Error, IntegrityError
 from contextlib import closing
 import data.models as ModelTypes
@@ -35,7 +35,7 @@ class BaseDataRepository(ABC, Generic[TModel]):
     def _print_value(self, category: str, value: Any) -> None:
         print(f"{__class__.__name__}.{__name__}(...) - {category} - ", value)
 
-    def _get_model_type_by_table_name(self) -> type:
+    def _get_model_type_by_table_name(self) -> Type[TModel]:
         try:
             model_name = from_snake_case_to_pascal_case(self._table_name)
             return getattr(ModelTypes, model_name)

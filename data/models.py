@@ -39,7 +39,7 @@ class User(BaseModel):
 
     @property
     def age(self):
-        if not self.date_of_birth:
+        if not self.date_of_birth or not isinstance(self.date_of_birth, date):
             return None
         return date.today().year - self.date_of_birth.year
 
