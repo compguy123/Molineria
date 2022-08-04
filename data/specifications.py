@@ -48,11 +48,9 @@ class GetAllUsersMedicationDetails(BaseSpecification):
 
     def get_sql(self) -> tuple[str, dict[str, Any]]:
         sql = f"""
-            SELECT um.*, m.*, r.*, i.*
+            SELECT um.*, m.*
             FROM user_medication AS um
             INNER JOIN medication AS m ON m.id = um.medication_id
-            LEFT JOIN user_medication_refill AS r ON r.user_medication_id = um.id
-            LEFT JOIN user_medication_intake AS i ON i.user_medication_id = um.id
             WHERE um.user_id = @user_id
             ORDER BY m.name, um.id
             """
