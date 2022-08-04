@@ -1,7 +1,8 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import time, date
 from enum import Enum
+from typing import Any, Type, TypeVar
 
 from util.string import to_snake_case
 
@@ -95,9 +96,20 @@ class UserMedicationIntake(BaseModel):
 
 
 @dataclass
-class UserMedicationDetailDTO:
-    medication: Medication
+class BaseDTO(ABC):
+    # maybe we can use this for mapping or building queries?
+    @abstractmethod
+    def get_field_types(self) -> list[Type[Any]]:
+        return [v for v in self.__annotations__.values()]
+
+
+@dataclass
+class UserMedicationDetailDTO(BaseDTO):
     user_medication: UserMedication
+    medication: Medication
+
+    def get_field_types(self):
+        return super().get_field_types()
 
 
 # <time>.strftime("%I:%M:%S") -> 12 hr format
