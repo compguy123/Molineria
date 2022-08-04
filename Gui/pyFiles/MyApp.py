@@ -1,6 +1,7 @@
 from kivy.app import App
 from kivy.lang import Builder
 from Gui.pyFiles.WindowManager import WindowManager
+from Gui.pyFiles.navigation_manager import NavigationManager
 from Gui.pyFiles.state_store import StateStore
 
 
@@ -14,22 +15,10 @@ class MyApp(App):
         return windowManager
 
     def go(self, page: str, dir: str) -> None:
-        app = self
-        if app and app.root:
-            screen_manager = app.root
-            screen_manager.transition.direction = dir  # type: ignore
-            screen_manager.current = page  # type: ignore
+        NavigationManager.go(page, dir)
 
     def go_right(self, page: str) -> None:
-        app = self
-        if app and app.root:
-            screen_manager = app.root
-            screen_manager.transition.direction = "right"  # type: ignore
-            screen_manager.current = page  # type: ignore
+        NavigationManager.go_right(page)
 
     def go_left(self, page: str) -> None:
-        app = self
-        if app and app.root:
-            screen_manager = app.root
-            screen_manager.transition.direction = "left"  # type: ignore
-            screen_manager.current = page  # type: ignore
+        NavigationManager.go_left(page)
