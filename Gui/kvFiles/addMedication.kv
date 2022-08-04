@@ -14,8 +14,8 @@
         text: "Add Medication"
         pos_hint:{"x":.35, "top":.2}
         on_press:
-            root.manager.transition.direction = "left"
-            app.root.current="UserPage" if root.onCreate() else "AddMedication"
+            app.go_left("UserPage" if root.onCreate() else "AddMedication")
+            
     TextInput:
         id:rx
         pos_hint: {"x":0.33, "top":.6}
@@ -27,5 +27,4 @@
         text: "Cancel"
         pos_hint:{"x":.55, "top":.2}
         on_press:
-            root.manager.transition.direction = "right"
-            app.root.current= "UserPage"
+            app.go_right("UserPage")

@@ -5,7 +5,8 @@ from contextlib import closing
 import data.models as ModelTypes
 from data.exceptions import MolineriaDataException, UniqueConstraintException
 from data.models import BaseModel
-from util.string_util import from_snake_case_to_pascal_case
+from util.mapper import TupleMapper
+from util.string import from_snake_case_to_pascal_case
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
@@ -45,7 +46,7 @@ class BaseDataRepository(ABC, Generic[TModel]):
             )
 
     @abstractmethod
-    def get(self, id: int) -> TModel:
+    def get(self, id: int) -> TModel | None:
         if id <= 0:
             raise MolineriaDataException("id must be > 0.")
         sql = f"""
@@ -56,9 +57,12 @@ class BaseDataRepository(ABC, Generic[TModel]):
         cursor: Cursor
         with closing(self._conn.execute(sql, (id,))) as cursor:
             records: list[tuple] = cursor.fetchall()
-            if len(records) > 0:
-                found_record: TModel = self._get_model_type_by_table_name()(*records[0])
-                return found_record
+            if len(records) <= 0:
+                return None
+
+            type = self._get_model_type_by_table_name()
+            found_record: TModel = TupleMapper.map(type, records[0])
+            return found_record
 
     @abstractmethod
     def get_all(self) -> list[TModel]:
@@ -69,11 +73,12 @@ class BaseDataRepository(ABC, Generic[TModel]):
         cursor: Cursor
         with closing(self._conn.execute(sql)) as cursor:
             records: list[tuple] = cursor.fetchall()
-            if len(records) > 0:
-                found_records: list[TModel] = [
-                    self._get_model_type_by_table_name()(*record) for record in records
-                ]
-                return found_records
+            if len(records) <= 0:
+                return []
+
+            type = self._get_model_type_by_table_name()
+            found_records: list[TModel] = TupleMapper.map_all(type, records)
+            return found_records
 
     @abstractmethod
     def create(self, record: TModel) -> TModel:
@@ -93,14 +98,11 @@ class BaseDataRepository(ABC, Generic[TModel]):
             """
         cursor: Cursor
         try:
-            with self._conn as conn:
-                with closing(conn.execute(sql, dict)) as cursor:
-                    id = cursor.lastrowid
-                    if not id:
-                        raise MolineriaDataException(
-                            "Failed to retreive ID after insert."
-                        )
-                    return self.get(id)
+            with closing(self._conn.execute(sql, dict)) as cursor:
+                id = cursor.lastrowid
+                if not id:
+                    raise MolineriaDataException("Failed to retreive ID after insert.")
+                return self.get(id)
         except IntegrityError as err:
             self._print_value("CREATE ERROR -> UniqueConstraintException:", err)
             raise UniqueConstraintException(inner_exception=err)
@@ -124,9 +126,8 @@ class BaseDataRepository(ABC, Generic[TModel]):
             WHERE id = @id;
             """
         try:
-            with self._conn as conn:
-                with closing(conn.execute(sql, dict)):
-                    return self.get(record.id)
+            with closing(self._conn.execute(sql, dict)):
+                return self.get(record.id)
         except IntegrityError as err:
             self._print_value("UPDATE ERROR -> UniqueConstraintException:", err)
             raise UniqueConstraintException(inner_exception=err)
@@ -144,31 +145,10 @@ class BaseDataRepository(ABC, Generic[TModel]):
             """
         cursor: Cursor
         try:
-            with self._conn as conn:
-                with closing(conn.execute(sql, (id,))) as cursor:
-                    return cursor.rowcount == 1
+            with closing(self._conn.execute(sql, (id,))) as cursor:
+                return cursor.rowcount == 1
         except Error as err:
             self._print_value("DELETE ERROR:", err)
-            raise MolineriaDataException(inner_exception=err)
-
-    @abstractmethod
-    def execute_sql(self, sql: str, parameters: dict[str, Any]):
-        cursor: Cursor
-        try:
-            with self._conn as conn:
-                with closing(conn.execute(sql, parameters)) as cursor:
-                    records: list[tuple] = cursor.fetchall()
-                    if len(records) > 0:
-                        found_records: list[TModel] = [
-                            self._get_model_type_by_table_name()(*record)
-                            for record in records
-                        ]
-                        return found_records
-        except IntegrityError as err:
-            self._print_value("EXEC ERROR ERROR -> UniqueConstraintException:", err)
-            raise UniqueConstraintException(inner_exception=err)
-        except Error as err:
-            self._print_value("EXEC SPEC ERROR:", err)
             raise MolineriaDataException(inner_exception=err)
 
 
@@ -181,9 +161,8 @@ class FakeDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     ) -> None:
         super().__init__(connection, table_name, select_cols)
 
-    def get(self, id: int) -> TModel:
-        model_type = self._get_model_type_by_table_name()
-        return model_type()
+    def get(self, id: int) -> TModel | None:
+        return None
 
     def get_all(self) -> list[TModel]:
         return []
@@ -197,9 +176,6 @@ class FakeDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     def delete(self, id: int) -> bool:
         return True
 
-    def execute_sql(self, sql: str, parameters: dict[str, Any]):
-        return []
-
 
 class MolineriaDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     def __init__(
@@ -210,7 +186,7 @@ class MolineriaDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     ) -> None:
         super().__init__(connection, table_name, select_cols)
 
-    def get(self, id: int) -> TModel:
+    def get(self, id: int) -> TModel | None:
         return super().get(id)
 
     def get_all(self) -> list[TModel]:
@@ -224,6 +200,3 @@ class MolineriaDataRepository(BaseDataRepository[TModel], Generic[TModel]):
 
     def delete(self, id: int) -> bool:
         return super().delete(id)
-
-    def execute_sql(self, sql: str, parameters: dict[str, Any]):
-        return super().execute_sql(sql, parameters)

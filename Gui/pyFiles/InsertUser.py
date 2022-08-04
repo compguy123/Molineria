@@ -2,6 +2,7 @@ from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 
 from datetime import date, datetime
 
@@ -9,17 +10,17 @@ from data.exceptions import UniqueConstraintException
 from data.models import User
 from data.unit_of_work import MolineriaUnitOfWork
 
-from util.string_util import is_null_or_whitespace
+from util.string import is_null_or_whitespace
 
 
 class InsertUser(Screen):
-    userName = ObjectProperty(None)
-    comments = ObjectProperty(None)
-    dob = ObjectProperty(None)
+    userName: TextInput = ObjectProperty(None)
+    comments: TextInput = ObjectProperty(None)
+    dob: TextInput = ObjectProperty(None)
 
     def createUser(self):
         # check user variables are valid
-        if self.userName.text != "" and self.validateDate():
+        if not is_null_or_whitespace(self.userName.text) and self.validateDate():
             unit_of_work = MolineriaUnitOfWork("data/molineria.db")
             with unit_of_work:
                 parsed_date: date | None = None
@@ -63,8 +64,10 @@ class InsertUser(Screen):
     # create pipup
     def invalidUser(self, text):
         self.pop = Popup(
-            title="Error", content=Label(text=text), size_hint=(0.4, 0.4), auto_dismiss=True
+            title="Error",
+            content=Label(text=text),
+            size_hint=(0.4, 0.4),
+            auto_dismiss=True,
         )
 
         self.pop.open()
-

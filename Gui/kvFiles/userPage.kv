@@ -29,13 +29,11 @@
             text: "Go back"
             pos_hint:{"x":.57, "top":.2}
             on_press:
-                app.root.current= "ShowUser"
-                root.manager.transition.direction = "right"
+                app.go_right("ShowUser")
 
         Button:
             text: "Add New Medication"
             pos_hint:{"x":.30, "top":.2}
             size_hint_x:.2
             on_press:
-                app.root.current ="AddMedication"
-                root.manager.transition.direction="left"
+                app.go_left("AddMedication")

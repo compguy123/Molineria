@@ -1,7 +1,10 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import time, date
 from enum import Enum
+from typing import Any, Type, TypeVar
+
+from util.string import to_snake_case
 
 
 class DayOfWeek(Enum):
@@ -17,6 +20,15 @@ class DayOfWeek(Enum):
 @dataclass
 class BaseModel(ABC):
     id: int = 0
+
+    def get_select_cols(self):
+        return list(map(lambda x: x, vars(self)))
+
+    def get_select_cols_str(self):
+        return ",".join(self.get_select_cols())
+
+    def get_table_name(self):
+        return to_snake_case(self.__class__.__name__)
 
 
 @dataclass
@@ -81,6 +93,23 @@ class UserMedicationIntake(BaseModel):
             return False
         days_of_week_list = self.days_of_week.lower().split(",")
         return any(filter(lambda d: d == target.value, days_of_week_list))
+
+
+@dataclass
+class BaseDTO(ABC):
+    # maybe we can use this for mapping or building queries?
+    @abstractmethod
+    def get_field_types(self) -> list[Type[Any]]:
+        return [v for v in self.__annotations__.values()]
+
+
+@dataclass
+class UserMedicationDetailDTO(BaseDTO):
+    user_medication: UserMedication
+    medication: Medication
+
+    def get_field_types(self):
+        return super().get_field_types()
 
 
 # <time>.strftime("%I:%M:%S") -> 12 hr format
