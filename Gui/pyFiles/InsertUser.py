@@ -10,7 +10,7 @@ from data.exceptions import UniqueConstraintException
 from data.models import User
 from data.unit_of_work import MolineriaUnitOfWork
 
-from util.string_util import is_null_or_whitespace
+from util.string import is_null_or_whitespace
 
 
 class InsertUser(Screen):

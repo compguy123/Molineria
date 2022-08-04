@@ -1,12 +1,11 @@
 from typing import Any
 from abc import ABC, abstractmethod
 from data.models import (
-    Medication,
     User,
-    UserMedication,
     UserMedicationDetailDTO,
 )
 from data.unit_of_work import BaseUnitOfWork
+from util.mapper import TupleMapper
 
 
 class BaseSpecification(ABC):
@@ -58,28 +57,7 @@ class GetAllUsersMedicationDetails(BaseSpecification):
 
     def execute(self):
         records = super().execute()
-        result: list[UserMedicationDetailDTO] = []
-
-        for record_tuple in records:
-            step_len = 1
-            starting_point = 0
-            next_stopping_point = len(vars(UserMedication()))
-
-            tup = record_tuple[starting_point:next_stopping_point:step_len]
-            user_medication = UserMedication(*tup)  # type: ignore
-
-            starting_point = next_stopping_point
-            next_stopping_point = next_stopping_point + len(vars(Medication()))
-
-            tup = record_tuple[starting_point:next_stopping_point:step_len]
-            medication = Medication(*tup)  # type: ignore
-
-            rec = UserMedicationDetailDTO(
-                medication=medication, user_medication=user_medication
-            )
-            result.append(rec)
-
-        return result
+        return TupleMapper.FromList(records).to(UserMedicationDetailDTO)
 
 
 ## split tuples - (1,'asdf',...)[start : end : step]

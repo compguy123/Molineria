@@ -9,7 +9,7 @@ from Gui.pyFiles.state_store import get_state
 from data.exceptions import UniqueConstraintException
 from data.models import Medication, UserMedication
 from data.unit_of_work import MolineriaUnitOfWork
-from util.string_util import is_null_or_whitespace
+from util.string import is_null_or_whitespace
 
 
 class AddMedication(Screen):
