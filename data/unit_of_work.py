@@ -1,9 +1,15 @@
 import os
-import sqlite3
+from sqlite3 import Connection, Cursor, Error, IntegrityError, connect
 from contextlib import closing
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Any
-from data.exceptions import InvalidConnectionException, InvalidDatabaseException
+from data.exceptions import (
+    InvalidConnectionException,
+    InvalidDatabaseException,
+    MolineriaDataException,
+    UniqueConstraintException,
+)
+import data.models as ModelTypes
 from data.models import (
     Medication,
     Pharmacy,
@@ -17,12 +23,12 @@ from data.repositories import (
     FakeDataRepository,
     MolineriaDataRepository,
 )
-from util.string_util import is_null_or_whitespace
+from util.string_util import from_snake_case_to_pascal_case, is_null_or_whitespace
 
 
 class BaseUnitOfWork(ABC):
     _database_name: str
-    _conn: sqlite3.Connection
+    _conn: Connection
     _schema_sql_script: str
     _required_tables: list[str] = [
         "medication",
@@ -55,7 +61,7 @@ class BaseUnitOfWork(ABC):
 
     def _ensure_connection_created(self) -> None:
         if (not hasattr(self, "_conn")) or (not self._conn):
-            self._conn = sqlite3.connect(self._database_name)
+            self._conn = connect(self._database_name)
 
     def _is_missing_any_tables(self, required_tables: list[str]) -> bool:
         self._ensure_connection_created()
@@ -67,6 +73,11 @@ class BaseUnitOfWork(ABC):
                 if current_table_names.count((table,)) <= 0:
                     return True
             return False
+
+    @staticmethod
+    def get_model_type_by_table_name(table_name) -> type:
+        model_name = from_snake_case_to_pascal_case(table_name)
+        return getattr(ModelTypes, model_name)
 
     def __enter__(self) -> None:
         self.ensure_database_created()
@@ -120,6 +131,21 @@ class BaseUnitOfWork(ABC):
     @abstractmethod
     def ensure_database_created(self) -> None:
         pass
+
+    @abstractmethod
+    def execute_sql(self, sql: str, parameters: dict[str, Any]):
+        cursor: Cursor
+        try:
+            with self._conn as conn:
+                with closing(conn.execute(sql, parameters)) as cursor:
+                    records: list[tuple] = cursor.fetchall()
+                    return records
+        except IntegrityError as err:
+            self._print_value("EXEC SPEC ERROR -> UniqueConstraintException:", err)
+            raise UniqueConstraintException(inner_exception=err)
+        except Error as err:
+            self._print_value("EXEC SPEC ERROR:", err)
+            raise MolineriaDataException(inner_exception=err)
 
 
 class FakeUnitOfWork(BaseUnitOfWork):
@@ -192,6 +218,9 @@ class FakeUnitOfWork(BaseUnitOfWork):
                 select_cols="id,user_medication_id,time,amount_in_milligrams,days_of_week",
             )
         return self._user_medication_intake_repo
+
+    def execute_sql(self, sql: str, parameters: dict[str, Any]) -> list[tuple]:
+        return []
 
 
 class MolineriaUnitOfWork(BaseUnitOfWork):
@@ -307,3 +336,6 @@ class MolineriaUnitOfWork(BaseUnitOfWork):
                 select_cols=UserMedicationIntake().get_select_cols_str(),
             )
         return self._user_medication_intake_repo
+
+    def execute_sql(self, sql: str, parameters: dict[str, Any]):
+        return super().execute_sql(sql, parameters)

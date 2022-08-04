@@ -94,6 +94,12 @@ class UserMedicationIntake(BaseModel):
         return any(filter(lambda d: d == target.value, days_of_week_list))
 
 
+@dataclass
+class UserMedicationDetailDTO:
+    medication: Medication
+    user_medication: UserMedication
+
+
 # <time>.strftime("%I:%M:%S") -> 12 hr format
 ### get field names in order
 # ",".join([k for k in vars(UserMedicationIntake()).keys()])

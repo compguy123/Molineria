@@ -150,26 +150,6 @@ class BaseDataRepository(ABC, Generic[TModel]):
             self._print_value("DELETE ERROR:", err)
             raise MolineriaDataException(inner_exception=err)
 
-    @abstractmethod
-    def execute_sql(self, sql: str, parameters: dict[str, Any]):
-        cursor: Cursor
-        try:
-            with self._conn as conn:
-                with closing(conn.execute(sql, parameters)) as cursor:
-                    records: list[tuple] = cursor.fetchall()
-                    if len(records) > 0:
-                        found_records: list[TModel] = [
-                            self._get_model_type_by_table_name()(*record)
-                            for record in records
-                        ]
-                        return found_records
-        except IntegrityError as err:
-            self._print_value("EXEC ERROR ERROR -> UniqueConstraintException:", err)
-            raise UniqueConstraintException(inner_exception=err)
-        except Error as err:
-            self._print_value("EXEC SPEC ERROR:", err)
-            raise MolineriaDataException(inner_exception=err)
-
 
 class FakeDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     def __init__(
@@ -196,9 +176,6 @@ class FakeDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     def delete(self, id: int) -> bool:
         return True
 
-    def execute_sql(self, sql: str, parameters: dict[str, Any]):
-        return []
-
 
 class MolineriaDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     def __init__(
@@ -223,6 +200,3 @@ class MolineriaDataRepository(BaseDataRepository[TModel], Generic[TModel]):
 
     def delete(self, id: int) -> bool:
         return super().delete(id)
-
-    def execute_sql(self, sql: str, parameters: dict[str, Any]):
-        return super().execute_sql(sql, parameters)

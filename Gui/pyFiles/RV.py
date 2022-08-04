@@ -14,12 +14,10 @@ class RV(RecycleView):
         # assigning data in RecyclerView
         unit_of_work = MolineriaUnitOfWork("data/molineria.db")
         with unit_of_work:
-            spec = GetAllUsersOrderedSpec(unit_of_work.user_repo)
+            spec = GetAllUsersOrderedSpec(unit_of_work)
             users = spec.execute()
             if users:
-                self.data = [
-                    {"text": u.name, "id": u.id, "user": self} for u in users
-                ]
+                self.data = [{"text": u.name, "id": u.id, "user": self} for u in users]
 
     def getApp(self, id):
         # get id
