@@ -7,7 +7,7 @@ from data.models import (
     UserMedicationDetailDTO,
 )
 from data.unit_of_work import BaseUnitOfWork
-
+from util.mapper import TupleMapper
 
 class BaseSpecification(ABC):
     def __init__(self, unit_of_work: BaseUnitOfWork) -> None:
@@ -58,28 +58,19 @@ class GetAllUsersMedicationDetails(BaseSpecification):
 
     def execute(self):
         records = super().execute()
-        result: list[UserMedicationDetailDTO] = []
-
-        for record_tuple in records:
-            step_len = 1
-            starting_point = 0
-            next_stopping_point = len(vars(UserMedication()))
-
-            tup = record_tuple[starting_point:next_stopping_point:step_len]
-            user_medication = UserMedication(*tup)  # type: ignore
-
-            starting_point = next_stopping_point
-            next_stopping_point = next_stopping_point + len(vars(Medication()))
-
-            tup = record_tuple[starting_point:next_stopping_point:step_len]
-            medication = Medication(*tup)  # type: ignore
-
-            rec = UserMedicationDetailDTO(
-                medication=medication, user_medication=user_medication
+        mapped = TupleMapper.map_multi_all(
+            [
+                UserMedication,
+                Medication,
+            ],
+            records,
+        )
+        return [
+            UserMedicationDetailDTO(
+                medication=m[Medication], user_medication=m[UserMedication]
             )
-            result.append(rec)
-
-        return result
+            for m in mapped
+        ]
 
 
 ## split tuples - (1,'asdf',...)[start : end : step]

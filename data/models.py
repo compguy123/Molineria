@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import time, date
 from enum import Enum
 
-from util.string_util import to_snake_case
+from util.string import to_snake_case
 
 
 class DayOfWeek(Enum):

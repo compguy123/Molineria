@@ -5,7 +5,8 @@ from contextlib import closing
 import data.models as ModelTypes
 from data.exceptions import MolineriaDataException, UniqueConstraintException
 from data.models import BaseModel
-from util.string_util import from_snake_case_to_pascal_case
+from util.mapper import TupleMapper
+from util.string import from_snake_case_to_pascal_case
 
 TModel = TypeVar("TModel", bound=BaseModel)
 
@@ -45,7 +46,7 @@ class BaseDataRepository(ABC, Generic[TModel]):
             )
 
     @abstractmethod
-    def get(self, id: int) -> TModel:
+    def get(self, id: int) -> TModel | None:
         if id <= 0:
             raise MolineriaDataException("id must be > 0.")
         sql = f"""
@@ -59,7 +60,8 @@ class BaseDataRepository(ABC, Generic[TModel]):
             if len(records) <= 0:
                 return None
 
-            found_record: TModel = self._get_model_type_by_table_name()(*records[0])
+            type = self._get_model_type_by_table_name()
+            found_record: TModel = TupleMapper.map(type, records[0])
             return found_record
 
     @abstractmethod
@@ -74,9 +76,8 @@ class BaseDataRepository(ABC, Generic[TModel]):
             if len(records) <= 0:
                 return []
 
-            found_records: list[TModel] = [
-                self._get_model_type_by_table_name()(*record) for record in records
-            ]
+            type = self._get_model_type_by_table_name()
+            found_records: list[TModel] = TupleMapper.map_all(type, records)
             return found_records
 
     @abstractmethod
@@ -160,9 +161,8 @@ class FakeDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     ) -> None:
         super().__init__(connection, table_name, select_cols)
 
-    def get(self, id: int) -> TModel:
-        model_type = self._get_model_type_by_table_name()
-        return model_type()
+    def get(self, id: int) -> TModel | None:
+        return None
 
     def get_all(self) -> list[TModel]:
         return []
@@ -186,7 +186,7 @@ class MolineriaDataRepository(BaseDataRepository[TModel], Generic[TModel]):
     ) -> None:
         super().__init__(connection, table_name, select_cols)
 
-    def get(self, id: int) -> TModel:
+    def get(self, id: int) -> TModel | None:
         return super().get(id)
 
     def get_all(self) -> list[TModel]:

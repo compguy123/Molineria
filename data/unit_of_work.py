@@ -23,7 +23,7 @@ from data.repositories import (
     FakeDataRepository,
     MolineriaDataRepository,
 )
-from util.string_util import from_snake_case_to_pascal_case, is_null_or_whitespace
+from util.string import from_snake_case_to_pascal_case, is_null_or_whitespace
 
 
 class BaseUnitOfWork(ABC):
