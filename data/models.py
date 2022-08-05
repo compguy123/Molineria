@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import time, date
+from datetime import datetime, time, date, timedelta
 from enum import Enum
-from typing import Any, Type, TypeVar
-
+from typing import Any, Type
+from util.models import TargetDatetime
 from util.string import to_snake_case
 
 
@@ -15,6 +15,42 @@ class DayOfWeek(Enum):
     Friday = "friday"
     Saturday = "saturday"
     Sunday = "sunday"
+
+    @staticmethod
+    def __get_mapping_from_iso():
+        return {
+            1: DayOfWeek.Monday,
+            2: DayOfWeek.Tuesday,
+            3: DayOfWeek.Wednesday,
+            4: DayOfWeek.Thursday,
+            5: DayOfWeek.Friday,
+            6: DayOfWeek.Saturday,
+            7: DayOfWeek.Sunday,
+        }
+
+    @staticmethod
+    def __get_mapping_to_iso():
+        from_mapping = DayOfWeek.__get_mapping_from_iso()
+        k = from_mapping.keys()
+        v = from_mapping.values()
+        return dict(zip(v, k))
+
+    def toisoweekday(self):
+        mapping = DayOfWeek.__get_mapping_to_iso()
+        return mapping[self]
+
+    @staticmethod
+    def fromisoweekday(isoweekday: int):
+        mapping = DayOfWeek.__get_mapping_from_iso()
+        return mapping[isoweekday]
+
+    @staticmethod
+    def fromdate(date: date):
+        return DayOfWeek.fromisoweekday(date.isoweekday())
+
+    @staticmethod
+    def fromdatetime(datetime: datetime):
+        return DayOfWeek.fromisoweekday(datetime.isoweekday())
 
 
 @dataclass
@@ -93,6 +129,36 @@ class UserMedicationIntake(BaseModel):
             return False
         days_of_week_list = self.days_of_week.lower().split(",")
         return any(filter(lambda d: d == target.value, days_of_week_list))
+
+    def try_add_day_of_week(self, day_of_week: DayOfWeek) -> bool:
+        if not self.has_day_of_week(day_of_week):
+            self.days_of_week = f"{self.days_of_week},{day_of_week.value}"
+            return True
+        return False
+
+    def try_remove_day_of_week(self, day_of_week: DayOfWeek) -> bool:
+        if not self.has_day_of_week(day_of_week):
+            return False
+        days_of_week_list = self.days_of_week.lower().split(",")
+        days_of_week_list.remove(day_of_week.value)
+        self.days_of_week = ",".join(days_of_week_list)
+        return True
+
+    def next_intake(self):
+        current = datetime.now()
+        current_day_of_week = DayOfWeek.fromdate(current)
+        has_day_of_week = self.has_day_of_week(current_day_of_week)
+        while not has_day_of_week or (has_day_of_week and self.time < current.time()):
+            current = current + timedelta(days=1)
+            current = datetime.combine(current, self.time)
+            current_day_of_week = DayOfWeek.fromdate(current)
+            has_day_of_week = self.has_day_of_week(current_day_of_week)
+
+        target = datetime.combine(current, self.time)
+        return target
+
+    def next_intake_as_target(self) -> TargetDatetime:
+        return TargetDatetime(self.next_intake())
 
 
 @dataclass

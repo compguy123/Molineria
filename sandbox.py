@@ -1,66 +1,38 @@
-from datetime import datetime
-from data.models import Medication, User, UserMedication
-from data.unit_of_work import MolineriaUnitOfWork
+from datetime import datetime, time
+from json.encoder import JSONEncoder
+from data.models import UserMedicationIntake as UMI
+
+intakes = [
+    UMI(id=1, days_of_week="tuesday"),
+    UMI(id=2, days_of_week="monday", time=time(hour=4, minute=41)),
+    UMI(id=3, days_of_week="friday", time=time(second=14)),
+    UMI(id=4, days_of_week="wednesday", time=time(minute=2)),
+    UMI(id=5, days_of_week="thursday,monday", time=time(hour=3)),
+    UMI(id=6, days_of_week="monday", time=time(hour=21, minute=22, second=51)),
+    UMI(id=7, days_of_week="sunday,tuesday", time=time(hour=11, minute=11, second=11)),
+    UMI(id=8, days_of_week="wednesday,saturday", time=time(hour=6, minute=7, second=8)),
+    UMI(id=9, days_of_week="thursday,friday"),
+]
 
 
-def user_name_match(name: str):
-    def match_user(m: User) -> bool:
-        return m.name == name
-
-    return match_user
-
-
-def med_name_match(name: str):
-    def match_med(m: Medication) -> bool:
-        return m.name == name
-
-    return match_med
-
-
-def user_med_rx_match(rx: str):
-    def match_user_med(m: UserMedication) -> bool:
-        return m.rx_number == rx
-
-    return match_user_med
-
-
-db = MolineriaUnitOfWork("molineria/data/molineria.db")
-with db:  # auto close connection
-    user = User(
-        name="John Doe",
-        date_of_birth=datetime.strptime("1998-08-28", "%Y-%m-%d").date(),
-        comment="some user",
-    )
-    if not any(filter(user_name_match(user.name), db.user_repo.get_all())):
-        user = db.user_repo.create(
-            user
-        )  # each create and update call is auto wrapped in transaction
-        if user is None:
-            raise Exception()
-
-    users = db.user_repo.get_all()  # warning, this gets all records in user table
-    print("ALL USERS:", users)
-    print("John doe USER:", db.user_repo.get(user.id))
-
-    user.comment = f"new comment in town ({datetime.now()})"
-    user = db.user_repo.update(user)
-    if user is None:
-        raise Exception()
-    print(user)
-
-    med = Medication(name="SomeMed101")
-
-    if not any(
-        filter(med_name_match(med.name), db.medication_repo.get_all())
-    ):  # see if med SomeMed101 doesn't exist in medication table
-        med = db.medication_repo.create(med)
-        if med is None:
-            raise Exception()
-
-    um_list = db.user_medication_repo.get_all()
-    if not any(filter(user_med_rx_match("18282-191S"), um_list)):
-        um = UserMedication(
-            user_id=user.id, medication_id=med.id, rx_number="18282-191S", quantity=20
+def format_intakes(intakes: list[UMI]):
+    return list(
+        map(
+            lambda x: f"[{x.id}] {x.next_intake()} ({x.next_intake_as_target().remaining_short_humanized})",
+            intakes,
         )
-        um = db.user_medication_repo.create(um)
-        print(um)
+    )
+
+
+now = datetime.now()
+json_serializer = JSONEncoder(indent=4)
+
+targets = format_intakes(intakes)
+print(f"now:     {now:%Y-%m-%d %H:%M:%S}")
+print(f"intakes: {json_serializer.encode(targets)}")
+
+intakes.sort(key=UMI.next_intake)
+
+targets: list[str] = format_intakes(intakes)
+print(f"now:     {now:%Y-%m-%d %H:%M:%S}")
+print(f"sorted intakes: {json_serializer.encode(targets)}")
