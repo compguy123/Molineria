@@ -3,6 +3,8 @@ from data.models import User
 
 
 class StateStore:
+    last_page: str = ""
+    current_page: str = ""
     current_user: User
 
 

@@ -1,3 +1,4 @@
+import logging
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
@@ -11,6 +12,8 @@ from data.models import User
 from data.unit_of_work import MolineriaUnitOfWork
 
 from util.string import is_null_or_whitespace
+
+logger = logging.getLogger().getChild(__name__)
 
 
 class InsertUser(Screen):
@@ -34,7 +37,7 @@ class InsertUser(Screen):
                 )
                 try:
                     inserted_user = unit_of_work.user_repo.create(user)
-                    print(f"INSERTED USER: {inserted_user}")
+                    logger.debug(f"INSERTED USER: {inserted_user}")
                     self.reset()
                     return True
                 except UniqueConstraintException:

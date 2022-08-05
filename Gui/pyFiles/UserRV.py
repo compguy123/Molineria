@@ -1,4 +1,7 @@
+import logging
 from kivy.uix.recycleview import RecycleView
+
+logger = logging.getLogger().getChild(__name__)
 
 class UserRV(RecycleView):
     def __init__(self, **kwargs):
