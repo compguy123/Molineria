@@ -18,6 +18,7 @@ class AddMedication(Screen):
     medname: TextInput = ObjectProperty()
     rxnumber: TextInput = ObjectProperty()
 
+
     def onCreate(self):
         state = get_state()
         id = state.current_user.id
