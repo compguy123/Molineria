@@ -1,8 +1,14 @@
+from datetime import datetime, timedelta
+from itertools import groupby
 from typing import Any
 from abc import ABC, abstractmethod
 from data.models import (
+    Medication,
     User,
+    UserMedication,
     UserMedicationDetailDTO,
+    UserMedicationDetailWithIntakeDTO,
+    UserMedicationIntake,
 )
 from data.unit_of_work import BaseUnitOfWork
 from util.mapper import TupleMapper
@@ -58,6 +64,57 @@ class GetAllUsersMedicationDetails(BaseSpecification):
     def execute(self):
         records = super().execute()
         return TupleMapper.FromList(records).to(UserMedicationDetailDTO)
+
+
+class GetAllUsersMedicationDetailsWithIntakes(BaseSpecification):
+    def __init__(self, unit_of_work: BaseUnitOfWork, user_id: int) -> None:
+        self.user_id = user_id
+        super().__init__(unit_of_work)
+
+    def get_sql(self) -> tuple[str, dict[str, Any]]:
+        sql = f"""
+            SELECT um.*, m.*, umi.*
+            FROM user_medication AS um
+            INNER JOIN medication AS m ON m.id = um.medication_id
+            LEFT JOIN user_medication_intake AS umi ON umi.user_medication_id = um.id
+            WHERE um.user_id = @user_id
+            ORDER BY m.name, um.id
+            """
+        return (sql, {"user_id": self.user_id})
+
+    def execute(self):
+        records = super().execute()
+        recs = TupleMapper.FromList(records).to(UserMedicationDetailWithIntakeDTO)
+
+        def user_medication_id(umddwi: UserMedicationDetailWithIntakeDTO):
+            return umddwi.user_medication.id
+
+        def intake(umddwi: UserMedicationDetailWithIntakeDTO):
+            return umddwi.user_medication_intake
+
+        def next_intake(umddwi: UserMedicationDetailWithIntakeDTO):
+            return umddwi.user_medication_intake.next_intake()
+
+        result: list[
+            tuple[UserMedicationDetailWithIntakeDTO, list[UserMedicationIntake]]
+        ] = []
+
+        for [k, v] in groupby(recs, key=user_medication_id):
+
+            def target(umddwi: UserMedicationDetailWithIntakeDTO):
+                return umddwi.user_medication.id == k
+
+            head_intake = sorted(filter(target, recs), key=next_intake)[0]
+            tail_intakes = list(map(intake, sorted(v, key=next_intake)))
+            result.append((head_intake, tail_intakes))
+
+        def next_intake_tup(
+            t: tuple[UserMedicationDetailWithIntakeDTO, list[UserMedicationIntake]]
+        ):
+            return t[0].user_medication_intake.next_intake()
+
+        r = sorted(result, key=next_intake_tup)
+        return r
 
 
 ## split tuples - (1,'asdf',...)[start : end : step]

@@ -1,4 +1,4 @@
-from kivy.app import App
+import logging
 from kivy.properties import ObjectProperty
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
@@ -10,6 +10,8 @@ from data.exceptions import UniqueConstraintException
 from data.models import Medication, UserMedication
 from data.unit_of_work import MolineriaUnitOfWork
 from util.string import is_null_or_whitespace
+
+logger = logging.getLogger().getChild(__name__)
 
 
 class AddMedication(Screen):
@@ -29,7 +31,7 @@ class AddMedication(Screen):
                 created_med = False
                 try:
                     inserted_med = unit_of_work.medication_repo.create(medication)
-                    print(f"INSERTED MED: {inserted_med}")
+                    logger.debug(f"INSERTED MED: {inserted_med}")
                     user_medication = UserMedication(
                         user_id=id,
                         medication_id=inserted_med.id,
@@ -38,7 +40,7 @@ class AddMedication(Screen):
                     inserted_user_med = unit_of_work.user_medication_repo.create(
                         user_medication
                     )
-                    print(f"INSERTED USER MED: {inserted_user_med}")
+                    logger.debug(f"INSERTED USER MED: {inserted_user_med}")
                     self.reset()
                     created_med = True
                 except UniqueConstraintException:
@@ -63,3 +65,4 @@ class AddMedication(Screen):
 
     def reset(self):
         self.medname.text = ""
+        self.rxnumber.text = ""

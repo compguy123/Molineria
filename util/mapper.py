@@ -63,7 +63,7 @@ class TupleMapper:
                 # try and get ctor parameter types - NOTE: this requires the ordering of parameters to match
                 multiType = tuple([k for k in dest.__annotations__.values()])
 
-            tup: tuple = tuple(*self.values)
+            tup: tuple = tuple(self.values)
             types = list(multiType)
             mapped = TupleMapper.map_multi(types, tup)
             v = TupleMapper.map_into(dest, mapped)
@@ -92,6 +92,7 @@ class TupleMapper:
             return v
 
 
+# from dataclasses import dataclass
 # @dataclass
 # class Me1:
 #     id: int = 0
@@ -111,7 +112,7 @@ class TupleMapper:
 #     me2: Me2 = Me2()
 
 
-## rely on Dto's field ordering for mapping multiple types (Me1 and Me2) into Dto
+# # rely on Dto's field ordering for mapping multiple types (Me1 and Me2) into Dto
 # dto = TupleMapper.From(
 #     (1, "me-1", 2, "me-2", "2002-01-21")
 # ).to(Dto)
