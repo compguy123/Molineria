@@ -63,10 +63,10 @@
             multiline: False
             font_size: (root.width**2 + root.height**2) / 14**4
         Button:
-            text: "Add Medication"
+            text: "Continue"
             pos_hint:{"x":.35, "top":.2}
             on_press:
-                app.go_left("UserPage" if root.onCreate() else "AddMedication")
+                app.go_left("Intake" if root.onCreate() else "AddMedication")
 
 
         Button:
