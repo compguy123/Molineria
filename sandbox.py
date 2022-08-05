@@ -1,17 +1,38 @@
 from datetime import datetime, time
 from json.encoder import JSONEncoder
+from typing import Type, TypeVar
 from data.models import UserMedicationIntake as UMI
 
+T = TypeVar("T")
+
+
+def create_factory(type: Type[T]):
+    i = [0]
+
+    def create(days_of_week: str, time: time | None = None) -> T:
+        i[0] = i[0] + 1
+        return type(
+            **{
+                "id": i[0],
+                "days_of_week": days_of_week,
+                "time": time.isoformat() if time else "",
+            }
+        )
+
+    return create
+
+
+creator = create_factory(UMI)
 intakes = [
-    UMI(id=1, days_of_week="tuesday"),
-    UMI(id=2, days_of_week="monday", time=time(hour=4, minute=41)),
-    UMI(id=3, days_of_week="friday", time=time(second=14)),
-    UMI(id=4, days_of_week="wednesday", time=time(minute=2)),
-    UMI(id=5, days_of_week="thursday,monday", time=time(hour=3)),
-    UMI(id=6, days_of_week="monday", time=time(hour=21, minute=22, second=51)),
-    UMI(id=7, days_of_week="sunday,tuesday", time=time(hour=11, minute=11, second=11)),
-    UMI(id=8, days_of_week="wednesday,saturday", time=time(hour=6, minute=7, second=8)),
-    UMI(id=9, days_of_week="thursday,friday"),
+    creator("tuesday"),
+    creator("monday", time(hour=4, minute=41)),
+    creator("friday", time(second=14)),
+    creator("wednesday", time(minute=2)),
+    creator("thursday,monday", time(hour=3)),
+    creator("monday", time(hour=21, minute=22, second=51)),
+    creator("sunday,tuesday", time(hour=11, minute=11)),
+    creator("wednesday,saturday", time(hour=6, minute=7)),
+    creator("thursday,friday"),
 ]
 
 
