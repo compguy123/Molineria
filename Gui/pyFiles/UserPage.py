@@ -6,7 +6,10 @@ from kivy.uix.textinput import TextInput
 from kivy.clock import Clock, ClockEvent
 from Gui.pyFiles.state_store import get_state
 from Gui.pyFiles.UserRV import UserRV
-from data.specifications import GetAllUsersMedicationDetails
+from data.specifications import (
+    GetAllUsersMedicationDetails,
+    GetAllUsersMedicationDetailsWithIntakes,
+)
 from data.unit_of_work import MolineriaUnitOfWork
 
 logger = logging.getLogger().getChild(__name__)
@@ -21,10 +24,15 @@ class UserPage(Screen, RecycleView):
         # show user its medication
         unit_of_work = MolineriaUnitOfWork("data/molineria.db")
         with unit_of_work:
-            spec = GetAllUsersMedicationDetails(unit_of_work, id)
+            spec = GetAllUsersMedicationDetailsWithIntakes(unit_of_work, id)
             user_medications = spec.execute()
             if user_medications:
-                self.data = [{"text": str(u.medication.name)} for u in user_medications]
+                self.data = [
+                    {
+                        "text": f"{d.medication.name} - {d.user_medication_intake.next_intake_as_target().remaining_short_humanized}"
+                    }
+                    for [d, tail_intakes] in user_medications
+                ]
                 user_meds: UserRV = self.ids.userMeds
                 user_meds.refreshMeds(self.data)
 

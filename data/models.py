@@ -57,6 +57,14 @@ class DayOfWeek(Enum):
 class BaseModel(ABC):
     id: int = 0
 
+    def __init__(self, id: int) -> None:
+        self.id = id
+        self.on_create()
+        super().__init__()
+
+    def on_create(self):
+        pass
+
     def get_select_cols(self):
         return list(map(lambda x: x, vars(self)))
 
@@ -120,7 +128,7 @@ class UserMedicationRefill(BaseModel):
 @dataclass
 class UserMedicationIntake(BaseModel):
     user_medication_id: int = 0
-    time: time = time.min
+    time: str = ""
     amount_in_milligrams: float = 0
     days_of_week: str = ""
 
@@ -145,16 +153,21 @@ class UserMedicationIntake(BaseModel):
         return True
 
     def next_intake(self):
+        if self.id is None:
+            return datetime.now()
+
         current = datetime.now()
-        current_day_of_week = DayOfWeek.fromdate(current)
+        my_time = time.fromisoformat(self.time) if self.time and isinstance(self.time, str) else time.min
+        current_day_of_week = DayOfWeek.fromdatetime(current)
         has_day_of_week = self.has_day_of_week(current_day_of_week)
-        while not has_day_of_week or (has_day_of_week and self.time < current.time()):
-            current = current + timedelta(days=1)
-            current = datetime.combine(current, self.time)
-            current_day_of_week = DayOfWeek.fromdate(current)
+
+        while not has_day_of_week or (has_day_of_week and my_time < current.time()):
+            current = (current + timedelta(days=1)).date()
+            current = datetime.combine(current, my_time)
+            current_day_of_week = DayOfWeek.fromdatetime(current)
             has_day_of_week = self.has_day_of_week(current_day_of_week)
 
-        target = datetime.combine(current, self.time)
+        target = datetime.combine(current, my_time)
         return target
 
     def next_intake_as_target(self) -> TargetDatetime:
@@ -173,6 +186,16 @@ class BaseDTO(ABC):
 class UserMedicationDetailDTO(BaseDTO):
     user_medication: UserMedication
     medication: Medication
+
+    def get_field_types(self):
+        return super().get_field_types()
+
+
+@dataclass
+class UserMedicationDetailWithIntakeDTO(BaseDTO):
+    user_medication: UserMedication
+    medication: Medication
+    user_medication_intake: UserMedicationIntake
 
     def get_field_types(self):
         return super().get_field_types()
