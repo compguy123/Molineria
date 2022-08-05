@@ -1,3 +1,4 @@
+from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import ScreenManager
 from Gui.pyFiles.Homepage import Homepage
 from Gui.pyFiles.InsertUser import InsertUser
@@ -11,12 +12,13 @@ class WindowManager(ScreenManager):
         super().__init__(**kwargs)
 
     def initalize(self):
-        screens = {
+        screens: list[Widget] = [
             Homepage(name="Homepage"),
             InsertUser(name="InsertUser"),
             ShowUser(name="ShowUser"),
             UserPage(name="UserPage"),
             AddMedication(name="AddMedication"),
-        }
+        ]
         for screen in screens:
             self.add_widget(screen)
+        self.current = "Homepage"
