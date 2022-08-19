@@ -8,8 +8,7 @@ from data.unit_of_work import MolineriaUnitOfWork
 logger = logging.getLogger().getChild(__name__)
 
 
-class UserRV(BaseRecyclerViewer):
-
+class IntakeRV(BaseRecyclerViewer):
 
     def refresh_data(self):
         id = get_state().current_user.id

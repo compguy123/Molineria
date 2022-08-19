@@ -4,6 +4,9 @@ from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.uix.screenmanager import Screen
+
+from Gui.pyFiles.BaseScreen import BaseScreen
+from Gui.pyFiles.PopupUtil import PopupUtil
 from Gui.pyFiles.state_store import get_state
 
 from data.exceptions import UniqueConstraintException
@@ -14,10 +17,9 @@ from util.string import is_null_or_whitespace
 logger = logging.getLogger().getChild(__name__)
 
 
-class AddMedication(Screen):
+class AddMedication(BaseScreen):
     medname: TextInput = ObjectProperty()
     rxnumber: TextInput = ObjectProperty()
-
 
     def onCreate(self):
         state = get_state()
@@ -44,24 +46,13 @@ class AddMedication(Screen):
                     self.reset()
                     created_med = True
                 except UniqueConstraintException:
-                    self.invalidUser("Duplicate Medication")
+                    PopupUtil.error("Duplicate Medication")
                     created_med = False
                 return created_med
         else:
-            self.invalidUser("Invalid Name or Date")
+            PopupUtil.error("Invalid Name or Date")
             return False
 
-        # create pipup
-
-    def invalidUser(self, text):
-        self.pop = Popup(
-            title="Error",
-            content=Label(text=text),
-            size_hint=(0.4, 0.4),
-            auto_dismiss=True,
-        )
-
-        self.pop.open()
 
     def reset(self):
         self.medname.text = ""
