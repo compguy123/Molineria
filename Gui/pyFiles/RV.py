@@ -2,19 +2,23 @@ import logging
 from kivy.properties import ObjectProperty
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.button import Button
+
+from Gui.pyFiles.BaseRecyclerViewer import BaseRecyclerViewer
 from Gui.pyFiles.navigation_manager import NavigationManager
 from Gui.pyFiles.state_store import get_state
 from data.specifications import GetAllUsersOrderedSpec
 from data.unit_of_work import MolineriaUnitOfWork
 
+
 logger = logging.getLogger().getChild(__name__)
 
 
-class RV(RecycleView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+class RV(BaseRecyclerViewer):
+    @property
+    def rv_data(self):
+        return self.data
 
-    def refreshList(self):
+    def refresh_data(self):
         logger.info(f"<{__class__.__name__}> refreshing list")
         unit_of_work = MolineriaUnitOfWork("data/molineria.db")
         with unit_of_work:

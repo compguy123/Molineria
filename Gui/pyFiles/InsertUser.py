@@ -7,6 +7,8 @@ from kivy.uix.textinput import TextInput
 
 from datetime import date, datetime
 
+from Gui.pyFiles.BaseScreen import BaseScreen
+from Gui.pyFiles.PopupUtil import PopupUtil
 from data.exceptions import UniqueConstraintException
 from data.models import User
 from data.unit_of_work import MolineriaUnitOfWork
@@ -16,7 +18,7 @@ from util.string import is_null_or_whitespace
 logger = logging.getLogger().getChild(__name__)
 
 
-class InsertUser(Screen):
+class InsertUser(BaseScreen):
     userName: TextInput = ObjectProperty(None)
     comments: TextInput = ObjectProperty(None)
     dob: TextInput = ObjectProperty(None)
@@ -41,11 +43,11 @@ class InsertUser(Screen):
                     self.reset()
                     return True
                 except UniqueConstraintException:
-                    self.invalidUser("Duplicate Name")
+                    PopupUtil.error("Duplicate Name")
                     return False
 
         else:
-            self.invalidUser("Invalid Name or Date")
+            PopupUtil.error("Invalid Name or Date")
             return False
 
     # reset user variable
@@ -64,13 +66,4 @@ class InsertUser(Screen):
         except ValueError:
             return False
 
-    # create pipup
-    def invalidUser(self, text):
-        self.pop = Popup(
-            title="Error",
-            content=Label(text=text),
-            size_hint=(0.4, 0.4),
-            auto_dismiss=True,
-        )
 
-        self.pop.open()
