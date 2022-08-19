@@ -13,7 +13,7 @@ from data.exceptions import UniqueConstraintException
 from data.models import User
 from data.unit_of_work import MolineriaUnitOfWork
 
-from util.string import is_null_or_whitespace
+from util.string import is_null_or_whitespace, is_date
 
 logger = logging.getLogger().getChild(__name__)
 
@@ -25,7 +25,7 @@ class InsertUser(BaseScreen):
 
     def createUser(self):
         # check user variables are valid
-        if not is_null_or_whitespace(self.userName.text) and self.validateDate():
+        if not is_null_or_whitespace(self.userName.text) and  (is_null_or_whitespace(self.dob.text) or is_date(self.dob.text)):
             unit_of_work = MolineriaUnitOfWork("data/molineria.db")
             with unit_of_work:
                 parsed_date: date | None = None
@@ -56,14 +56,6 @@ class InsertUser(BaseScreen):
         self.comments.text = ""
         self.dob.text = ""
 
-    # check date
-    def validateDate(self):
-        if not self.dob or is_null_or_whitespace(self.dob.text):
-            return True
-        try:
-            datetime.strptime(self.dob.text, "%Y-%m-%d")
-            return True
-        except ValueError:
-            return False
+
 
 
