@@ -13,29 +13,29 @@ from kivy.uix.button import Button
 
 
 class Intake(BaseScreen):
-
-
     def on_enter(self, *args):
         state = get_state()
         IntakeRva = IntakeRV()
         mv = MultiSelectSpinner()
+
+
 class MultiSelectSpinner(Button):
     """Widget allowing to select multiple text options."""
 
-    dropdown = ObjectProperty(None)
+    dropdown: DropDown = ObjectProperty(None)
     """(internal) DropDown used with MultiSelectSpinner."""
 
-    values = ListProperty([])
+    values: list[str] = ListProperty([])
     """Values to choose from."""
 
-    selected_values = ListProperty([])
+    selected_values: list[str] = ListProperty([])
     """List of values selected by the user."""
 
     def __init__(self, **kwargs):
-        self.bind(dropdown=self.update_dropdown)
-        self.bind(values=self.update_dropdown)
+        self.bind(dropdown=self.update_dropdown)  # type: ignore
+        self.bind(values=self.update_dropdown)  # type: ignore
         super(MultiSelectSpinner, self).__init__(**kwargs)
-        self.bind(on_release=self.toggle_dropdown)
+        self.bind(on_release=self.toggle_dropdown)  # type: ignore
 
     def toggle_dropdown(self, *args):
         if self.dropdown.parent:
@@ -51,12 +51,12 @@ class MultiSelectSpinner(Button):
             if self.dropdown.children:
                 self.dropdown.clear_widgets()
             for value in values:
-                b = Factory.MultiSelectOption(text=value)
-                b.bind(state=self.select_value)
+                b = Factory.MultiSelectOption(text=value)  # type: ignore
+                b.bind(state=self.select_value)  # type: ignore
                 self.dropdown.add_widget(b)
 
     def select_value(self, instance, value):
-        if value == 'down':
+        if value == "down":
             if instance.text not in self.selected_values:
                 self.selected_values.append(instance.text)
         else:
@@ -65,7 +65,6 @@ class MultiSelectSpinner(Button):
 
     def on_selected_values(self, instance, value):
         if value:
-            self.text = ', '.join(value)
+            self.text = ", ".join(value)
         else:
-            self.text = ''
-
+            self.text = ""
