@@ -6,6 +6,15 @@ class StateStore:
     last_page: str = ""
     current_page: str = ""
     current_user: User
+    selected_user_medication_id: int = 0
+
+    @property
+    def app_title(self) -> str:
+        return get_app().title
+
+    @app_title.setter
+    def app_title(self, value: str | None) -> None:
+        get_app().title = value
 
 
 # needed for getting MyApp without circle dep issue

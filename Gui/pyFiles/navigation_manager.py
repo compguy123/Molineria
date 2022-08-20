@@ -14,6 +14,7 @@ class NavigationManager:
             state = get_state()
             state.last_page = screen_manager.current  # type: ignore
             state.current_page = page  # type: ignore
+            state.app_title = f"[{state.current_page}]"
 
             if dir is not None:
                 screen_manager.transition.direction = dir  # type: ignore

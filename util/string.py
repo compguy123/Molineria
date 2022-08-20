@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 
 def is_null_or_whitespace(value: str | None) -> bool:
@@ -39,6 +39,14 @@ def is_float(value: str) -> bool:
 def is_date(value: str) -> bool:
     try:
         to_date(value)
+        return True
+    except ValueError:
+        return False
+
+
+def is_iso_time(value: str) -> bool:
+    try:
+        time.fromisoformat(value)
         return True
     except ValueError:
         return False

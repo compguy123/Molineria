@@ -7,6 +7,7 @@ from kivy.uix.textinput import TextInput
 from kivy.clock import Clock, ClockEvent
 
 from Gui.pyFiles.BaseScreen import BaseScreen
+from Gui.pyFiles.UserRV import UserRV, UserMedicationNavButton
 from Gui.pyFiles.state_store import get_state
 from Gui.pyFiles.UserRV import UserRV
 from data.specifications import (
@@ -29,5 +30,3 @@ class UserPage(BaseScreen):
             self.userDOB.text = state.current_user.date_of_birth
         else:
             self.userDOB.text = ""
-
-

@@ -153,6 +153,9 @@ class AddMedication(BaseScreen):
                     )
                     logger.debug(f"INSERTED USER MED: {inserted_user_med}")
                     self.reset()
+
+                    state.selected_user_medication_id = inserted_user_med.id
+
                     return True
                 except UniqueConstraintException:
                     PopupUtil.error("Duplicate Medication")

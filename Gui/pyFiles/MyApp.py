@@ -15,6 +15,7 @@ class MyApp(App):
         Builder.load_file("Gui/kvFiles/main.kv")
         windowManager.initalize()
         self.state = StateStore()
+        self.state.app_title = "[Homepage]"
         return windowManager
 
     def go(self, page: str, dir: str | None = None) -> None:

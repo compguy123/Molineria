@@ -1,6 +1,10 @@
 #:include Gui/kvFiles/intakeRv.kv
 <Intake>:
-
+    time: time
+    amount: amount
+    days: days
+    intakes: intakes
+    
     FloatLayout:
     TextInput:
         id:time
@@ -46,19 +50,21 @@
         font_name:'comic'
         color: 13/255,135/255,13/255,1
     Button:
-
-        text: "Add Medication"
+        text: "Add Intake"
         pos_hint:{"x":.75, "top":.75}
+        on_press:
+            root.create()
 
     Button:
         text: "Done"
         pos_hint:{"x":.45, "top":.2}
         on_press:
+            app.state.selected_user_medication_id = 0
             app.go_right("UserPage")
 
 
     IntakeRV:
-        id: userMeds
+        id: intakes
         size_hint:(.6,.3)
         pos_hint:{"x":.23, "top":.55}
 
