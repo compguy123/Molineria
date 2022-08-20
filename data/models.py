@@ -52,6 +52,10 @@ class DayOfWeek(Enum):
     def fromdatetime(datetime: datetime):
         return DayOfWeek.fromisoweekday(datetime.isoweekday())
 
+    @staticmethod
+    def parse(value: str):
+        return DayOfWeek(value.strip().lower())
+
 
 @dataclass
 class BaseModel(ABC):
@@ -157,7 +161,11 @@ class UserMedicationIntake(BaseModel):
             return datetime.now()
 
         current = datetime.now()
-        my_time = time.fromisoformat(self.time) if self.time and isinstance(self.time, str) else time.min
+        my_time = (
+            time.fromisoformat(self.time)
+            if self.time and isinstance(self.time, str)
+            else time.min
+        )
         current_day_of_week = DayOfWeek.fromdatetime(current)
         has_day_of_week = self.has_day_of_week(current_day_of_week)
 

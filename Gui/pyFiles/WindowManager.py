@@ -7,6 +7,7 @@ from Gui.pyFiles.ShowUser import ShowUser
 from Gui.pyFiles.UserPage import UserPage
 from Gui.pyFiles.AddMedication import AddMedication
 from Gui.pyFiles.Intake import Intake
+
 logger = logging.getLogger().getChild(__name__)
 
 
@@ -21,7 +22,7 @@ class WindowManager(ScreenManager):
             ShowUser(name="ShowUser"),
             UserPage(name="UserPage"),
             AddMedication(name="AddMedication"),
-            Intake(name="Intake")
+            Intake(name="Intake"),
         ]
         for screen in screens:
             self.add_widget(screen)
