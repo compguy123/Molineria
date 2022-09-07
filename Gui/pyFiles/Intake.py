@@ -16,9 +16,11 @@ from kivy.uix.dropdown import DropDown
 from kivy.uix.button import Button
 from data.exceptions import MolineriaDataException
 from data.models import DayOfWeek, UserMedicationIntake
+from data.specifications import GetAllUsersMedicationDetailsWithIntakes
 
 from data.unit_of_work import MolineriaUnitOfWork
-from util.string import is_float, is_iso_time, is_null_or_whitespace
+from util.iterable import find
+from util.string import is_float, is_iso_time, is_null_or_whitespace, is_int
 
 logger = logging.getLogger().getChild(__name__)
 
@@ -78,9 +80,27 @@ class Intake(BaseScreen):
     time: TextInput = ObjectProperty(None)
     amount: TextInput = ObjectProperty(None)
     days: MultiSelectSpinner = ObjectProperty(None)
+    done: Button = ObjectProperty(None)
 
     def on_enter(self, *args):
         state = get_state()
+        self.button_is_disabled(True)
+        id = state.current_user.id
+        user_med_id = state.selected_user_medication_id
+
+        def set_done_button(*args, **kwargs):
+            unit_of_work = MolineriaUnitOfWork("data/molineria.db")
+            with unit_of_work:
+                spec = GetAllUsersMedicationDetailsWithIntakes(unit_of_work, id)
+                user_medications = spec.execute()
+                target_user_med = find(
+                    lambda um: um[0].user_medication.id == user_med_id, user_medications
+                )
+
+                if target_user_med:
+                    user_med, intakes = target_user_med
+                    has_intake = user_med.user_medication_intake.id is not None
+                    self.button_is_disabled(not has_intake)
 
         def set_title(*args, **kwargs):
             unit_of_work = MolineriaUnitOfWork("data/molineria.db")
@@ -95,6 +115,7 @@ class Intake(BaseScreen):
                 state.app_title += f" - {med_name}"
 
         Clock.schedule_once(set_title, 0.1)
+        Clock.schedule_once(set_done_button, 0.11)
         return super().on_enter(*args)
 
     def is_inputs_valid(self):
@@ -110,17 +131,28 @@ class Intake(BaseScreen):
         if not is_float(self.amount.text):
             PopupUtil.error("amount must be a number.")
             return False
-        if not is_iso_time(self.time.text):
-            PopupUtil.error("time must be in iso format (24hr:min:sec).")
+        if len(self.time.text) > 2 or len(self.time.text) < 1 or not is_int(self.time.text):
+            PopupUtil.error("time must 2 digits")
             return False
+        if int(self.time.text) > 23 or int(self.time.text) < 0:
+            PopupUtil.error("time must be 0-23")
         if not any(self.days.selected_values):
             PopupUtil.error("You must pick at least one day of week.")
             return False
         return True
 
+    def button_is_disabled(self, is_done: bool):
+        self.done.disabled = is_done
+
     def create(self):
         state = get_state()
         unit_of_work = MolineriaUnitOfWork("data/molineria.db")
+        if self.time.text:
+            self.time.text = self.time.text.strip()
+        if not (self.is_inputs_valid()):
+            return None
+        if len(self.time.text) == 1:
+            self.time.text = "0" + self.time.text
         with unit_of_work:
             intake = UserMedicationIntake(
                 user_medication_id=state.selected_user_medication_id,
@@ -137,10 +169,18 @@ class Intake(BaseScreen):
                 )
                 logger.debug(f"INSERTED INTAKE: {inserted_intake}")
                 self.reset_inputs()
+                self.button_is_disabled(False)
             except MolineriaDataException as err:
                 logger.error(f"Failed to create intake: {err}")
+
+
 
     def reset_inputs(self):
         self.time.text = ""
         self.amount.text = ""
         self.days.selected_values = []
+        self.days.update_dropdown()
+
+    def on_leave(self, *args):
+        state = get_state()
+        state.selected_user_medication_id = 0

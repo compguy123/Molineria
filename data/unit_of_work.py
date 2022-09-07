@@ -62,6 +62,7 @@ class BaseUnitOfWork(ABC):
     def _ensure_connection_created(self) -> None:
         if (not hasattr(self, "_conn")) or (not self._conn):
             self._conn = connect(self._database_name)
+            self._conn.execute("PRAGMA foreign_keys = ON;")
 
     def _is_missing_any_tables(self, required_tables: list[str]) -> bool:
         self._ensure_connection_created()

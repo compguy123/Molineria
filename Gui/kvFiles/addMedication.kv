@@ -8,8 +8,11 @@
     refills: refills
     weight_pill: weight_pill
     total_weight :total_weight
-
+    label : label
+    delete_button: delete_button
+    layout :layout
     FloatLayout:
+        id:layout
 
         TextInput:
             id:med
@@ -33,14 +36,14 @@
 
         TextInput:
             id:refills
-            pos_hint: {"x":0.1, "top":.55}
+            pos_hint: {"x":0.4, "top":.55}
             size_hint: 0.2, 0.1
             multiline: False
             font_size: (root.width**2 + root.height**2) / 14**4
 
         TextInput:
             id:weight_pill
-            pos_hint: {"x":0.4, "top":.55}
+            pos_hint: {"x":0.1, "top":.55}
             size_hint: 0.2, 0.1
             multiline: False
             font_size: (root.width**2 + root.height**2) / 14**4
@@ -50,6 +53,7 @@
             size_hint: 0.2, 0.1
             multiline: False
             font_size: (root.width**2 + root.height**2) / 14**4
+            disabled:True
         TextInput:
             id:filled
             pos_hint: {"x":0.2, "top":.33}
@@ -69,6 +73,12 @@
             on_press:
                 app.go_left("Intake" if root.onCreate() else "AddMedication")
 
+        Button:
+            id: delete_button
+            text: "Delete This Med"
+            pos_hint:{"x":.05, "top":.2}
+            on_press:
+                root.delete_med()
 
 
         Button:
@@ -76,9 +86,12 @@
             pos_hint:{"x":.55, "top":.2}
             on_press:
                 app.go_right("UserPage")
+                app.state.selected_user_medication_id = 0
+
 
 
         Label:
+            id: label
             text:"Add Medication"
             pos_hint:{"x":.43, "top":1}
             size_hint: (0.15,0.1)
@@ -87,50 +100,50 @@
             color: 13/255,135/255,13/255,1
         Label:
             text:"Med Name:"
-            pos_hint:{"x":.17, "top":.9}
+            pos_hint:{"x":.15, "top":.9}
             size_hint: (0.05,0.05)
             font_size:'30sp'
             font_name:'comic'
-            color: 13/255,135/255,13/255,1
+            color: 255/255, 240/255, 0, 1
         Label:
             text:"Rx #:"
             pos_hint:{"x":.45, "top":.9}
             size_hint: (0.05,0.05)
             font_size:'30sp'
             font_name:'comic'
-            color: 13/255,135/255,13/255,1
+            color: 255/255, 240/255, 0, 1
         Label:
             text:"Quantity:"
             pos_hint:{"x":.75, "top":.9}
             size_hint: (0.05,0.05)
             font_size:'30sp'
             font_name:'comic'
-            color: 13/255,135/255,13/255,1
+            color: 255/255, 240/255, 0, 1
 
         Label:
-            text:"(Optional):"
-            pos_hint:{"x":.47, "top":.7}
+            text:"*Green are optional"
+            pos_hint:{"x":.1, "top":.1}
             size_hint: (0.05,0.05)
-            font_size:'30sp'
+            font_size:'20sp'
             font_name:'comic'
             color: 13/255,135/255,13/255,1
         Label:
             text:"Remaining Refills:"
-            pos_hint:{"x":.17, "top":.63}
+            pos_hint:{"x":.47, "top":.63}
             size_hint: (0.05,0.05)
             font_size:'20sp'
             font_name:'comic'
             color: 13/255,135/255,13/255,1
         Label:
             text:"Weight of a Pill(mg):"
-            pos_hint:{"x":.50, "top":.63}
+            pos_hint:{"x":.17, "top":.63}
             size_hint: (0.05,0.05)
             font_size:'20sp'
             font_name:'comic'
-            color: 13/255,135/255,13/255,1
+            color: 255/255, 240/255, 0, 1
         Label:
             text:"Total Weight(mg):"
-            pos_hint:{"x":.80, "top":.63}
+            pos_hint:{"x":.77, "top":.63}
             size_hint: (0.05,0.05)
             font_size:'20sp'
             font_name:'comic'

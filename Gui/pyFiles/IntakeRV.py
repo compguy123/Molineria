@@ -31,7 +31,7 @@ class IntakeRV(BaseRecyclerViewer):
                 self.user_med = user_med
                 self.data = [
                     {
-                        "text": f"{intake.amount_in_milligrams}mg(s) - {intake.next_intake_as_target().remaining_short_humanized}"
+                        "text": f"{intake.amount_in_milligrams}mg(s) - {intake.next_intake_as_target().remaining_short_humanized} - {intake.days_of_week}"
                     }
                     for intake in intakes
                     if intake.id

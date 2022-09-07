@@ -1,3 +1,4 @@
+PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS "medication" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL UNIQUE,
@@ -35,7 +36,7 @@ CREATE TABLE IF NOT EXISTS "user_medication" (
 	"discard_on"	TEXT,
 	PRIMARY KEY("id" AUTOINCREMENT),
 	FOREIGN KEY("user_id") REFERENCES "user"("id"),
-	FOREIGN KEY("medication_id") REFERENCES "medication"("id")
+	FOREIGN KEY("medication_id") REFERENCES "medication"("id") ,
 	UNIQUE ("user_id", "medication_id")
 );
 
@@ -58,6 +59,6 @@ CREATE TABLE IF NOT EXISTS "user_medication_intake" (
 	"time"	TEXT,
 	"amount_in_milligrams"	REAL,
 	"days_of_week"	TEXT,
-	FOREIGN KEY("user_medication_id") REFERENCES "user_medication"("id"),
+	FOREIGN KEY("user_medication_id") REFERENCES "user_medication"("id") ON DELETE cascade ,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
