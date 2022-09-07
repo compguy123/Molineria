@@ -30,7 +30,7 @@ class BaseScreen(Screen):
     def on_pre_leave(self, *args):
         for name in self.widget_rv_names:
             widget = self.ids[name]
-            if widget and hasattr(widget, "data") :
+            if widget and hasattr(widget, "data"):
                 widget.data =[]
         for event in self.refresh_events:
             if event and callable(event.cancel):

@@ -22,7 +22,8 @@ class WindowManager(ScreenManager):
             ShowUser(name="ShowUser"),
             UserPage(name="UserPage"),
             AddMedication(name="AddMedication"),
-            Intake(name="Intake"),
+            Intake(name="Intake")
+
         ]
         for screen in screens:
             self.add_widget(screen)

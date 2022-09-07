@@ -18,7 +18,8 @@ def to_snake_case(value: str) -> str:
 
 
 def to_date(value: str) -> date:
-    return datetime.strptime(value, "%Y-%m-%d")
+    list = value.split(" ")
+    return datetime.strptime(list[0], "%Y-%m-%d")
 
 
 def is_int(value: str) -> bool:

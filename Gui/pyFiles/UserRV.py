@@ -24,7 +24,7 @@ class UserRV(BaseRecyclerViewer):
                 self.data = [
                     {
                         "user_medication_id": d.user_medication.id,
-                        "text": f"{d.medication.name} - {d.user_medication_intake.next_intake_as_target().remaining_short_humanized}",
+                        "text": f"{d.medication.name} - {d.user_medication_intake.amount_in_milligrams}mg(s) - {d.user_medication_intake.next_intake_as_target().remaining_short_humanized} - {d.user_medication.quantity} remaining",
                     }
                     for [d, tail_intakes] in user_medications
                 ]
@@ -42,4 +42,4 @@ class UserMedicationNavButton(Button):
         super().on_release()
         state = get_state()
         state.selected_user_medication_id = self.user_medication_id
-        NavigationManager.go_left("Intake")
+        NavigationManager.go_left("AddMedication")
