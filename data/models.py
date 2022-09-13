@@ -84,6 +84,7 @@ class User(BaseModel):
     name: str = ""
     date_of_birth: date | None = None
     comment: str | None = None
+    last_login_date: date | None = None
 
     @property
     def age(self):
