@@ -1,24 +1,31 @@
+import logging
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 
 from datetime import date, datetime
 
+from Gui.pyFiles.BaseScreen import BaseScreen
+from Gui.pyFiles.PopupUtil import PopupUtil
+from data.exceptions import UniqueConstraintException
 from data.models import User
 from data.unit_of_work import MolineriaUnitOfWork
 
-from util.string_util import is_null_or_whitespace
+from util.string import is_null_or_whitespace, is_date
+
+logger = logging.getLogger().getChild(__name__)
 
 
-class InsertUser(Screen):
-    userName = ObjectProperty(None)
-    comments = ObjectProperty(None)
-    dob = ObjectProperty(None)
+class InsertUser(BaseScreen):
+    userName: TextInput = ObjectProperty(None)
+    email: TextInput = ObjectProperty(None)
+    dob: TextInput = ObjectProperty(None)
 
     def createUser(self):
         # check user variables are valid
-        if self.userName.text != "" and self.validateDate():
+        if not is_null_or_whitespace(self.userName.text) and not is_null_or_whitespace(self.email.text) and (is_null_or_whitespace(self.dob.text) or is_date(self.dob.text)):
             unit_of_work = MolineriaUnitOfWork("data/molineria.db")
             with unit_of_work:
                 parsed_date: date | None = None
@@ -28,40 +35,27 @@ class InsertUser(Screen):
                 user = User(
                     name=self.userName.text,
                     date_of_birth=parsed_date,
-                    comment=self.comments.text,
+                    email=self.email.text,
                 )
-                inserted_user = unit_of_work.user_repo.create(user)
-                print(f"INSERTED USER: {inserted_user}")
-                self.reset()
-                return True
+                try:
+                    inserted_user = unit_of_work.user_repo.create(user)
+                    logger.debug(f"INSERTED USER: {inserted_user}")
+                    self.reset()
+                    return True
+                except UniqueConstraintException:
+                    PopupUtil.error("Duplicate Name")
+                    return False
+
         else:
+            PopupUtil.error("Invalid Name, date or email")
             return False
 
     # reset user variable
     def reset(self):
         self.userName.text = ""
-        self.comments.text = ""
+        self.email.text = ""
         self.dob.text = ""
 
-    # return to homepage
-    def homepage(self):
-        pass
 
-    # check date
-    def validateDate(self):
-        if not self.dob or is_null_or_whitespace(self.dob.text):
-            return True
-        try:
-            datetime.strptime(self.dob.text, "%Y-%m-%d")
-            return True
-        except ValueError as ex:
-            return False
 
-    # create pipup
-    def invalidUser(self):
-        self.pop = Popup(
-            title="Error", content=Label(text="Invalid name or date."), size_hint=(0.4, 0.4)
-        )
-
-        self.pop.open()
 

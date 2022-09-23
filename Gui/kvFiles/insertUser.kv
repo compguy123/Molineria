@@ -11,22 +11,20 @@
     name: "InsertUser"
 
     userName: name
-    comments: comments
+    email: email
     dob: DOB
 
     Button:
         text: "Cancel"
         pos_hint:{"x":.55, "top":.2}
         on_press:
-            app.root.current= "Homepage"
-            root.manager.transition.direction = "right"
+            app.go_right("Homepage")
 
     Button:
         text: "Create User"
         pos_hint:{"x":.35, "top":.2}
         on_press:
-            root.manager.transition.direction = "left"
-            app.root.current="ShowUser" if root.createUser() else root.invalidUser()
+            app.go_left("ShowUser" if root.createUser() else "InsertUser")
 
 
 
@@ -47,7 +45,7 @@
         color: 13/255,135/255,13/255,1
 
     Label:
-        text:"Comments: "
+        text:"E-mail: "
         pos_hint:{"x":.15, "top":.6}
         size_hint: (0.1,0.1)
         font_size:'30sp'
@@ -70,7 +68,7 @@
         color: 13/255,135/255,13/255,1
 
     TextInput:
-        id: comments
+        id: email
         pos_hint: {"x":0.33, "top":.6}
         size_hint: 0.4, 0.1
         multiline: False

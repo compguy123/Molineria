@@ -1,0 +1,87 @@
+#:include Gui/kvFiles/intakeRv.kv
+<Intake>:
+    time: time
+    amount: amount
+    days: days
+    intakes: intakes
+    done: done
+    
+    FloatLayout:
+    TextInput:
+        id:time
+        pos_hint: {"x":0.1, "top":.75}
+        size_hint: 0.2, 0.1
+        multiline: False
+        font_size: (root.width**2 + root.height**2) / 14**4
+
+    TextInput:
+        id:amount
+        pos_hint: {"x":0.43, "top":.75}
+        size_hint: 0.2, 0.1
+        multiline: False
+        font_size: (root.width**2 + root.height**2) / 14**4
+
+
+    Label:
+        text:"Time taken(0-23hrs):"
+        pos_hint:{"x":.15, "top":.8}
+        size_hint: (0.05,0.05)
+        font_size:'20sp'
+        font_name:'comic'
+        color: 13/255,135/255,13/255,1
+    Label:
+        text:"(Amount in mg):"
+        pos_hint:{"x":.5, "top":.8}
+        size_hint: (0.05,0.05)
+        font_size:'20sp'
+        font_name:'comic'
+        color: 13/255,135/255,13/255,1
+    Label:
+        text:"Other Instances of this Med:"
+        pos_hint:{"x":.5, "top":.6}
+        size_hint: (0.05,0.05)
+        font_size:'20sp'
+        font_name:'comic'
+        color: 13/255,135/255,13/255,1
+    Label:
+        text:"Select Days:"
+        pos_hint:{"x":.50, "top":1}
+        size_hint: (0.05,0.05)
+        font_size:'20sp'
+        font_name:'comic'
+        color: 13/255,135/255,13/255,1
+    Button:
+        text: "Add Intake"
+        pos_hint:{"x":.75, "top":.75}
+        on_press:
+            root.create()
+
+
+    Button:
+        id: done
+        text: "Done"
+        pos_hint:{"x":.45, "top":.2}
+        on_press:
+            app.state.selected_user_medication_id = 0
+            app.go_right("UserPage")
+
+
+    IntakeRV:
+        id: intakes
+        size_hint:(.6,.3)
+        pos_hint:{"x":.23, "top":.55}
+
+    MultiSelectSpinner:
+        id: days
+        values: 'Sunday', 'Monday','Tuesday','Wednesday', 'Thursday','Friday','Saturday'
+        pos_hint: {"x":0.43, "top":.95}
+        size_hint: 0.2, 0.1
+        multiline: False
+        font_size: self.width/10
+
+
+
+
+<MultiSelectOption@ToggleButton>:
+    size_hint: 1, None
+    height: '48dp'
