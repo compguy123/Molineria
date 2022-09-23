@@ -20,12 +20,12 @@ logger = logging.getLogger().getChild(__name__)
 
 class InsertUser(BaseScreen):
     userName: TextInput = ObjectProperty(None)
-    comments: TextInput = ObjectProperty(None)
+    email: TextInput = ObjectProperty(None)
     dob: TextInput = ObjectProperty(None)
 
     def createUser(self):
         # check user variables are valid
-        if not is_null_or_whitespace(self.userName.text) and  (is_null_or_whitespace(self.dob.text) or is_date(self.dob.text)):
+        if not is_null_or_whitespace(self.userName.text) and not is_null_or_whitespace(self.email.text) and (is_null_or_whitespace(self.dob.text) or is_date(self.dob.text)):
             unit_of_work = MolineriaUnitOfWork("data/molineria.db")
             with unit_of_work:
                 parsed_date: date | None = None
@@ -35,7 +35,7 @@ class InsertUser(BaseScreen):
                 user = User(
                     name=self.userName.text,
                     date_of_birth=parsed_date,
-                    comment=self.comments.text,
+                    email=self.email.text,
                 )
                 try:
                     inserted_user = unit_of_work.user_repo.create(user)
@@ -47,13 +47,13 @@ class InsertUser(BaseScreen):
                     return False
 
         else:
-            PopupUtil.error("Invalid Name or Date")
+            PopupUtil.error("Invalid Name, date or email")
             return False
 
     # reset user variable
     def reset(self):
         self.userName.text = ""
-        self.comments.text = ""
+        self.email.text = ""
         self.dob.text = ""
 
 

@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS "user" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL UNIQUE,
 	"date_of_birth"	TEXT,
-	"comment"	TEXT,
+	"email"	TEXT,
 	"last_login_date" TEXT,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );

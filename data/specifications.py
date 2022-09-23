@@ -116,6 +116,26 @@ class GetAllUsersMedicationDetailsWithIntakes(BaseSpecification):
         r = sorted(result, key=next_intake_tup)
         return r
 
+# class DeleteSpecifiedUserMeds(BaseSpecification):
+#     def __init__(self, unit_of_work: BaseUnitOfWork, user_med_id: int) -> None:
+#         self.user_med_id = user_med_id
+#         super().__init__(unit_of_work)
+#
+#     def get_sql(self) -> tuple[str, dict[str, Any]]:
+#         sql = f"""
+#             SELECT um.*, m.*, umi.*
+#             FROM user_medication AS um
+#             INNER JOIN medication AS m ON m.id = um.medication_id
+#             LEFT JOIN user_medication_intake AS umi ON umi.user_medication_id = um.id
+#             WHERE um.user_id = @user_med_id
+#             ORDER BY m.name, um.id
+#             """
+#         return (sql, {"user_med_id": self.user_med_id})
+#
+#     def execute(self):
+#         records = super().execute()
+#
+#
 
 ## split tuples - (1,'asdf',...)[start : end : step]
 # [tuple([x for x in range(1, 15)]) for _ in range(2)]

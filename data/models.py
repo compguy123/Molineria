@@ -83,7 +83,7 @@ class BaseModel(ABC):
 class User(BaseModel):
     name: str = ""
     date_of_birth: date | None = None
-    comment: str | None = None
+    email: str | None = None
     last_login_date: date | None = None
 
     @property

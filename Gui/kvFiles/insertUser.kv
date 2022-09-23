@@ -11,7 +11,7 @@
     name: "InsertUser"
 
     userName: name
-    comments: comments
+    email: email
     dob: DOB
 
     Button:
@@ -45,7 +45,7 @@
         color: 13/255,135/255,13/255,1
 
     Label:
-        text:"Comments: "
+        text:"E-mail: "
         pos_hint:{"x":.15, "top":.6}
         size_hint: (0.1,0.1)
         font_size:'30sp'
@@ -68,7 +68,7 @@
         color: 13/255,135/255,13/255,1
 
     TextInput:
-        id: comments
+        id: email
         pos_hint: {"x":0.33, "top":.6}
         size_hint: 0.4, 0.1
         multiline: False
