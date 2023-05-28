@@ -13,4 +13,21 @@ Python project for the people by the people.
 
 ![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/0421379e-1cff-43d3-9c22-57ad25ca535d)
 
-<br />
+<br />Create new user:
+
+![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/213e8a70-0f1c-4b4b-a5cc-ecbde22bf041)
+
+
+<br />User Page:
+![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/9994436d-5aab-4ef2-8d7c-a97268251113)
+
+<br /> Add new Medication:
+
+![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/9e13bdaf-b479-4800-a218-8dabcecc5ca8)
+
+<br />Intake Page:
+
+![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/4750a043-50c7-4e14-a941-5e6aa78aafbc)
+
+
+
