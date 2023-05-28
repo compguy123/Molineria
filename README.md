@@ -8,48 +8,9 @@
 
 Python project for the people by the people.
 
-## Project Brain Storming / Misc Ideas
 
-- Try consuming web APIs
-- Incorporate a map
-  - display points of interest (POI)
-  - calculate routes/distance/etc
-  - etc
-- Relates to video games in some way
-  - in-game overlay?
-  - mod tool?
-  - etc
-- Frontend?
-  - Mobile (Android)
-  - Desktop
-  - React/Vue/Svelte/Solid/etc
-  - etc
-- Python Framework?
-  - Django (web)
-  - Flask (web)
-  - PyQT (desktop)
-  - PyGUI (desktop)
-  - Tkinter (desktop)
-  - etc
-- Database?
-  - NoSql?
-    - Cassandra
-    - MongoDB
-    - ElasticSearch
-    - etc
-  - Sql?
-    - SQLite
-    - Postgres
-    - MSSQL
-    - etc
+<br /> Homepage:
 
-## Setup
+![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/0421379e-1cff-43d3-9c22-57ad25ca535d)
 
-Download latest python release from [here](https://www.python.org/).
-
-For your IDE, use [PyCharm](https://www.jetbrains.com/pycharm/)
-or [VsCode](https://code.visualstudio.com/) + python [extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python).
-
-## TODO
-
-- Think of project idea.
+<br />
