@@ -11,23 +11,32 @@ Python project for the people by the people.
 
 <br /> Homepage:
 
-![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/0421379e-1cff-43d3-9c22-57ad25ca535d)
+![image](https://github.com/compguy123/Molineria/assets/77632039/0cb6521e-97d9-43f1-b7fd-aba5bc2def4e)
+
+
+
 
 <br />Create new user:
 
-![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/213e8a70-0f1c-4b4b-a5cc-ecbde22bf041)
+![image](https://github.com/compguy123/Molineria/assets/77632039/753bdaf1-b93a-4368-b0f7-176b3b74d1f6)
+
+
 
 
 <br />User Page:
-![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/9994436d-5aab-4ef2-8d7c-a97268251113)
+
+![image](https://github.com/compguy123/Molineria/assets/77632039/e6a30c4d-4c1a-4af4-b516-d859609abc91)
+
+
 
 <br /> Add new Medication:
 
-![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/9e13bdaf-b479-4800-a218-8dabcecc5ca8)
+![image](https://github.com/compguy123/Molineria/assets/77632039/d4e332c3-0d5b-46d5-b26e-f62b1a6fe886)
+
 
 <br />Intake Page:
 
-![image](https://github.com/compguy123/NinjaStar3000/assets/77632039/4750a043-50c7-4e14-a941-5e6aa78aafbc)
+![image](https://github.com/compguy123/Molineria/assets/77632039/ec5d5e7c-6af2-4127-b62f-2e892983410d)
 
 
 
